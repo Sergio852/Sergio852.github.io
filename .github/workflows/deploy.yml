@@ -10,6 +10,10 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,14 +22,39 @@ jobs:
       - name: Descargar código
         uses: actions/checkout@v4
 
-      - name: Construir Astro
-        uses: withastro/action@v5
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
 
-      - name: Configurar Pages
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Construir Astro
+        run: npm run build
+
+      - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
 
       - name: Subir sitio
         uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    permissions:
+      pages: write
+      id-token: write
+
+    steps:
       - name: Publicar sitio
+        id: deployment
         uses: actions/deploy-pages@v4
