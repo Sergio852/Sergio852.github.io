@@ -1,0 +1,98 @@
+---
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description } = Astro.props;
+---
+
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{title} | Blog de prácticas</title>
+    <meta
+      name="description"
+      content={description ?? "Blog personal de prácticas técnicas."}
+    />
+  </head>
+
+  <body>
+    <header class="site-header">
+      <a class="logo" href="/">Sergio.dev</a>
+
+      <nav>
+        <a href="/">Inicio</a>
+        <a href="/#practicas">Prácticas</a>
+        <a href="/sobre-mi">Sobre mí</a>
+      </nav>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer>
+      <p>Blog de prácticas técnicas · Astro + Markdown</p>
+    </footer>
+  </body>
+</html>
+
+<style>
+  :global(*) {
+    box-sizing: border-box;
+  }
+
+  :global(body) {
+    margin: 0;
+    color: #e8eaf0;
+    background: #101114;
+    font-family: system-ui, sans-serif;
+  }
+
+  .site-header {
+    max-width: 1100px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: auto;
+    padding: 24px;
+  }
+
+  .logo {
+    color: #ffffff;
+    font-size: 1.2rem;
+    font-weight: 800;
+    text-decoration: none;
+  }
+
+  nav {
+    display: flex;
+    gap: 22px;
+  }
+
+  nav a {
+    color: #aeb3c0;
+    text-decoration: none;
+  }
+
+  nav a:hover {
+    color: #ffffff;
+  }
+
+  main {
+    max-width: 1100px;
+    min-height: 80vh;
+    margin: auto;
+    padding: 40px 24px 80px;
+  }
+
+  footer {
+    max-width: 1100px;
+    margin: auto;
+    padding: 28px 24px;
+    color: #777d8c;
+    border-top: 1px solid #2b2e38;
+  }
+</style>

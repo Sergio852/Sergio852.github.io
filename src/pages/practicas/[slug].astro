@@ -1,0 +1,134 @@
+---
+import { getCollection, render } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+
+export async function getStaticPaths() {
+  const practicas = await getCollection("practicas");
+
+  return practicas.map((practica) => ({
+    params: {
+      slug: practica.id.replace(/\.md$/, "")
+    },
+    props: {
+      practica
+    }
+  }));
+}
+
+const { practica } = Astro.props;
+const { Content } = await render(practica);
+---
+
+<Layout
+  title={practica.data.title}
+  description={practica.data.description}
+>
+  <article class="article">
+    <a class="back" href="/">← Volver al inicio</a>
+
+    <p class="subject">{practica.data.subject}</p>
+
+    <h1>{practica.data.title}</h1>
+
+    <p class="description">{practica.data.description}</p>
+
+    <p class="date">
+      Publicado el {practica.data.date.toLocaleDateString("es-ES")}
+    </p>
+
+    <div class="tags">
+      {practica.data.tags.map((tag) => <span>{tag}</span>)}
+    </div>
+
+    <hr />
+
+    <div class="content">
+      <Content />
+    </div>
+  </article>
+</Layout>
+
+<style>
+  .article {
+    max-width: 780px;
+    margin: auto;
+  }
+
+  .back {
+    color: #b8c5ff;
+    text-decoration: none;
+  }
+
+  .subject {
+    margin-top: 70px;
+    color: #8fa7ff;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    margin: 18px 0;
+    font-size: clamp(2.6rem, 7vw, 5.5rem);
+    line-height: 1;
+    letter-spacing: -0.07em;
+  }
+
+  .description {
+    color: #c1c5d0;
+    font-size: 1.3rem;
+    line-height: 1.6;
+  }
+
+  .date {
+    color: #777d8c;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 24px 0;
+  }
+
+  .tags span {
+    padding: 6px 10px;
+    border-radius: 999px;
+    color: #cbd4ff;
+    background: #272d4a;
+    font-size: 0.8rem;
+  }
+
+  hr {
+    margin: 45px 0;
+    border: 0;
+    border-top: 1px solid #2b2e38;
+  }
+
+  .content {
+    color: #c1c5d0;
+    font-size: 1.08rem;
+    line-height: 1.8;
+  }
+
+  .content :global(h2) {
+    margin-top: 45px;
+    color: #ffffff;
+  }
+
+  .content :global(h3) {
+    color: #ffffff;
+  }
+
+  .content :global(li) {
+    margin: 8px 0;
+  }
+
+  .content :global(code) {
+    padding: 3px 6px;
+    border-radius: 5px;
+    color: #d5dcff;
+    background: #272d4a;
+  }
+</style>
