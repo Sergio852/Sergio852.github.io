@@ -1,17 +1,77 @@
 ---
-
+const titulo = "Prácticas y proyectos";
+const descripcion =
+  "Un espacio donde documento mis prácticas de sistemas, redes, bases de datos y desarrollo.";
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{titulo}</title>
+    <meta name="description" content={descripcion} />
+  </head>
+
+  <body>
+    <main>
+      <p class="etiqueta">Blog técnico personal</p>
+
+      <h1>{titulo}</h1>
+
+      <p class="descripcion">{descripcion}</p>
+
+      <a href="#practicas">Ver prácticas</a>
+    </main>
+  </body>
 </html>
+
+<style>
+  :global(*) {
+    box-sizing: border-box;
+  }
+
+  :global(body) {
+    margin: 0;
+    color: #e8eaf0;
+    background: #101114;
+    font-family: system-ui, sans-serif;
+  }
+
+  main {
+    max-width: 900px;
+    min-height: 100vh;
+    margin: auto;
+    padding: 120px 24px;
+  }
+
+  .etiqueta {
+    color: #8fa7ff;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    max-width: 700px;
+    margin: 20px 0;
+    font-size: clamp(3rem, 8vw, 6rem);
+    line-height: 0.95;
+    letter-spacing: -0.07em;
+  }
+
+  .descripcion {
+    max-width: 600px;
+    color: #aeb3c0;
+    font-size: 1.2rem;
+    line-height: 1.7;
+  }
+
+  a {
+    display: inline-block;
+    margin-top: 24px;
+    color: #b8c5ff;
+    font-weight: 700;
+    text-decoration: none;
+  }
+</style>
