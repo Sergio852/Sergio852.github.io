@@ -1,0 +1,31 @@
+name: Deploy Astro site
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Construir Astro
+        uses: withastro/action@v5
+
+      - name: Configurar Pages
+        uses: actions/configure-pages@v5
+
+      - name: Subir sitio
+        uses: actions/upload-pages-artifact@v3
+
+      - name: Publicar sitio
+        uses: actions/deploy-pages@v4
