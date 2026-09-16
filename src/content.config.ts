@@ -11,7 +11,8 @@ const practicas = defineCollection({
     subject: z.string(),
     description: z.string(),
     date: z.coerce.date(),
-    tags: z.array(z.string()).default([])
+    tags: z.array(z.string()).default([]),
+    pdf: z.string().optional()
   })
 });
 

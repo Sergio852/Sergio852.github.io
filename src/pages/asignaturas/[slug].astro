@@ -1,0 +1,126 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "../../layouts/Layout.astro";
+
+export function getStaticPaths() {
+  const asignaturas: Record<string, string> = {
+    "seguridad-alta-disponibilidad": "Seguridad y Alta Disponibilidad",
+    "implantacion-aplicaciones-web": "Implantación de Aplicaciones Web",
+    "infraestructura-virtual": "Infraestructura Virtual",
+    "administracion-sistemas-operativos":
+      "Administración de Sistemas Operativos",
+    "servicios-red-internet": "Servicios de Red e Internet",
+    "bases-datos": "Bases de Datos",
+    ingles: "Inglés"
+  };
+
+  return Object.entries(asignaturas).map(([slug, name]) => ({
+    params: { slug },
+    props: { name }
+  }));
+}
+
+const { name } = Astro.props;
+
+const todasLasPracticas = await getCollection("practicas");
+
+const practicas = todasLasPracticas
+  .filter((practica) => practica.data.subject === name)
+  .sort(
+    (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
+  );
+---
+
+<Layout
+  title={name}
+  description={`Prácticas de ${name}.`}
+>
+  <section class="header">
+    <a class="back" href="/asignaturas">
+      ← Todas las asignaturas
+    </a>
+
+    <p class="eyebrow">Asignatura</p>
+
+    <h1>{name}</h1>
+  </section>
+
+  {practicas.length === 0 ? (
+    <p class="empty">
+      Todavía no hay prácticas publicadas en esta asignatura.
+    </p>
+  ) : (
+    <section class="grid">
+      {practicas.map((practica) => (
+        <article class="card">
+          <p class="date">
+            {practica.data.date.toLocaleDateString("es-ES")}
+          </p>
+
+          <h2>{practica.data.title}</h2>
+
+          <p>{practica.data.description}</p>
+
+          <a
+            href={`/practicas/${practica.id}`}
+          >
+            Leer práctica →
+          </a>
+        </article>
+      ))}
+    </section>
+  )}
+</Layout>
+
+<style>
+  .header {
+    padding: 65px 0 45px;
+  }
+
+  .back {
+    color: #b8c5ff;
+    text-decoration: none;
+  }
+
+  .eyebrow {
+    margin-top: 55px;
+    color: #8fa7ff;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    max-width: 800px;
+    margin: 14px 0;
+    font-size: clamp(2.8rem, 7vw, 5.5rem);
+    line-height: 1;
+    letter-spacing: -0.07em;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+    gap: 20px;
+  }
+
+  .card {
+    padding: 26px;
+    border: 1px solid #2b2e38;
+    border-radius: 20px;
+    background: #17191f;
+  }
+
+  .date,
+  .card p,
+  .empty {
+    color: #aeb3c0;
+  }
+
+  .card a {
+    color: #b8c5ff;
+    font-weight: 700;
+    text-decoration: none;
+  }
+</style>

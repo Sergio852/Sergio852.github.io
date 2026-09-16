@@ -11,7 +11,7 @@ const { title, description } = Astro.props;
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
-    <title>{title} | Blog de prácticas</title>
+    <title>{title} | SergioMM</title>
     <meta
       name="description"
       content={description ?? "Blog personal de prácticas técnicas."}
@@ -20,12 +20,14 @@ const { title, description } = Astro.props;
 
   <body>
     <header class="site-header">
-      <a class="logo" href="/">Sergio.dev</a>
+      <a class="logo" href="/">
+        SergioMM
+      </a>
 
       <nav>
         <a href="/">Inicio</a>
-        <a href="/#practicas">Prácticas</a>
-        <a href="/sobre-mi">Sobre mí</a>
+        <a href="/asignaturas">Asignaturas</a>
+        <a href="/#practicas">Últimas prácticas</a>
       </nav>
     </header>
 
@@ -34,7 +36,12 @@ const { title, description } = Astro.props;
     </main>
 
     <footer>
-      <p>Blog de prácticas técnicas · Astro + Markdown</p>
+      <p>
+        Blog de prácticas técnicas ·
+        <a href="https://github.com/Sergio852" target="_blank">
+          GitHub
+        </a>
+      </p>
     </footer>
   </body>
 </html>
@@ -94,5 +101,9 @@ const { title, description } = Astro.props;
     padding: 28px 24px;
     color: #777d8c;
     border-top: 1px solid #2b2e38;
+  }
+
+  footer a {
+    color: #b8c5ff;
   }
 </style>

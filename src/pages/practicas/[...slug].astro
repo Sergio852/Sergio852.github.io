@@ -24,13 +24,17 @@ const { Content } = await render(practica);
   description={practica.data.description}
 >
   <article class="article">
-    <a class="back" href="/">← Volver al inicio</a>
+    <a class="back" href="/asignaturas">
+      ← Volver a asignaturas
+    </a>
 
     <p class="subject">{practica.data.subject}</p>
 
     <h1>{practica.data.title}</h1>
 
-    <p class="description">{practica.data.description}</p>
+    <p class="description">
+      {practica.data.description}
+    </p>
 
     <p class="date">
       Publicado el {practica.data.date.toLocaleDateString("es-ES")}

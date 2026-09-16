@@ -19,9 +19,23 @@ practicas.sort(
     <h1>Prácticas y proyectos</h1>
 
     <p class="intro">
-      Un espacio donde documento mis prácticas de Linux, redes,
-      servidores, bases de datos y desarrollo.
+      Un espacio donde documento mis prácticas de sistemas,
+      redes, servidores, bases de datos y desarrollo.
     </p>
+  </section>
+
+  <section class="subjects-link">
+    <p class="eyebrow">Organización</p>
+
+    <h2>Explora por asignatura</h2>
+
+    <p>
+      Consulta las prácticas agrupadas según el módulo formativo.
+    </p>
+
+    <a href="/asignaturas">
+      Ver todas las asignaturas →
+    </a>
   </section>
 
   <section id="practicas">
@@ -30,36 +44,44 @@ practicas.sort(
       <h2>Últimas prácticas</h2>
     </div>
 
-    <div class="grid">
-      {practicas.map((practica) => (
-        <article class="card">
-          <p class="subject">{practica.data.subject}</p>
+    {practicas.length === 0 ? (
+      <p class="empty">
+        Todavía no hay prácticas publicadas.
+      </p>
+    ) : (
+      <div class="grid">
+        {practicas.map((practica) => (
+          <article class="card">
+            <p class="subject">{practica.data.subject}</p>
 
-          <h3>{practica.data.title}</h3>
+            <h3>{practica.data.title}</h3>
 
-          <p class="description">
-            {practica.data.description}
-          </p>
+            <p class="description">
+              {practica.data.description}
+            </p>
 
-          <div class="tags">
-            {practica.data.tags.map((tag) => <span>{tag}</span>)}
-          </div>
+            <div class="tags">
+              {practica.data.tags.map((tag) => (
+                <span>{tag}</span>
+              ))}
+            </div>
 
-          <a
-            class="read-more"
-            href={`/practicas/${practica.id.replace(/\.md$/, "")}`}
-          >
-            Leer práctica →
-          </a>
-        </article>
-      ))}
-    </div>
+            <a
+              class="read-more"
+              href={`/practicas/${practica.id}`}
+            >
+              Leer práctica →
+            </a>
+          </article>
+        ))}
+      </div>
+    )}
   </section>
 </Layout>
 
 <style>
   .hero {
-    padding: 80px 0 120px;
+    padding: 80px 0 90px;
   }
 
   .eyebrow,
@@ -84,10 +106,30 @@ practicas.sort(
   }
 
   .intro {
-    max-width: 620px;
+    max-width: 650px;
     color: #aeb3c0;
     font-size: 1.2rem;
     line-height: 1.7;
+  }
+
+  .subjects-link {
+    margin-bottom: 90px;
+    padding: 28px;
+    border: 1px solid #2b2e38;
+    border-radius: 20px;
+    background: #17191f;
+  }
+
+  .subjects-link p {
+    color: #aeb3c0;
+    line-height: 1.6;
+  }
+
+  .subjects-link a,
+  .read-more {
+    color: #b8c5ff;
+    font-weight: 700;
+    text-decoration: none;
   }
 
   .section-heading {
@@ -111,7 +153,8 @@ practicas.sort(
     font-size: 1.45rem;
   }
 
-  .description {
+  .description,
+  .empty {
     color: #aeb3c0;
     line-height: 1.6;
   }
@@ -129,11 +172,5 @@ practicas.sort(
     color: #cbd4ff;
     background: #272d4a;
     font-size: 0.8rem;
-  }
-
-  .read-more {
-    color: #b8c5ff;
-    font-weight: 700;
-    text-decoration: none;
   }
 </style>

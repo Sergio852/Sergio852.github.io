@@ -1,0 +1,123 @@
+---
+import Layout from "../../layouts/Layout.astro";
+
+const asignaturas = [
+  {
+    name: "Seguridad y Alta Disponibilidad",
+    slug: "seguridad-alta-disponibilidad",
+    description: "Seguridad informática, copias de seguridad, disponibilidad y recuperación."
+  },
+  {
+    name: "Implantación de Aplicaciones Web",
+    slug: "implantacion-aplicaciones-web",
+    description: "Desarrollo, despliegue y mantenimiento de aplicaciones web."
+  },
+  {
+    name: "Infraestructura Virtual",
+    slug: "infraestructura-virtual",
+    description: "Máquinas virtuales, contenedores, redes virtuales y almacenamiento."
+  },
+  {
+    name: "Administración de Sistemas Operativos",
+    slug: "administracion-sistemas-operativos",
+    description: "Administración de Linux, Windows, usuarios, servicios y servidores."
+  },
+  {
+    name: "Servicios de Red e Internet",
+    slug: "servicios-red-internet",
+    description: "Redes, DNS, DHCP, routing, SSH, VPN y servicios de Internet."
+  },
+  {
+    name: "Bases de Datos",
+    slug: "bases-datos",
+    description: "Diseño, administración y consultas de bases de datos."
+  },
+  {
+    name: "Inglés",
+    slug: "ingles",
+    description: "Prácticas, vocabulario y contenidos técnicos en inglés."
+  }
+];
+---
+
+<Layout
+  title="Asignaturas"
+  description="Asignaturas del blog de prácticas de Sergio."
+>
+  <section class="header">
+    <p class="eyebrow">Organización</p>
+    <h1>Asignaturas</h1>
+    <p>
+      Selecciona una asignatura para consultar sus prácticas.
+    </p>
+  </section>
+
+  <section class="grid">
+    {asignaturas.map((asignatura) => (
+      <a class="card" href={`/asignaturas/${asignatura.slug}`}>
+        <h2>{asignatura.name}</h2>
+        <p>{asignatura.description}</p>
+        <span>Ver prácticas →</span>
+      </a>
+    ))}
+  </section>
+</Layout>
+
+<style>
+  .header {
+    padding: 70px 0 45px;
+  }
+
+  .eyebrow {
+    color: #8fa7ff;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    margin: 14px 0;
+    font-size: clamp(3rem, 8vw, 6rem);
+    letter-spacing: -0.07em;
+  }
+
+  .header p {
+    color: #aeb3c0;
+    font-size: 1.15rem;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+    gap: 20px;
+  }
+
+  .card {
+    padding: 26px;
+    border: 1px solid #2b2e38;
+    border-radius: 20px;
+    color: inherit;
+    background: #17191f;
+    text-decoration: none;
+  }
+
+  .card:hover {
+    border-color: #8fa7ff;
+    transform: translateY(-3px);
+  }
+
+  .card h2 {
+    font-size: 1.35rem;
+  }
+
+  .card p {
+    color: #aeb3c0;
+    line-height: 1.6;
+  }
+
+  .card span {
+    color: #b8c5ff;
+    font-weight: 700;
+  }
+</style>

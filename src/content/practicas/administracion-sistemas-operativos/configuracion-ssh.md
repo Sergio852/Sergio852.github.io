@@ -1,6 +1,6 @@
 ---
 title: "Configuración de un servidor SSH"
-subject: "Sistemas Informáticos"
+subject: "Administración de Sistemas Operativos"
 description: "Instalación y configuración de un servidor SSH para permitir conexiones remotas seguras."
 date: 2026-09-16
 tags:
@@ -8,7 +8,6 @@ tags:
   - SSH
   - Seguridad
 ---
-
 ## De qué trata
 
 En esta práctica se instala y configura un servidor SSH en Debian
