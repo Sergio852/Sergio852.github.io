@@ -3,174 +3,314 @@ import { getCollection } from "astro:content";
 import Layout from "../layouts/Layout.astro";
 
 const practicas = await getCollection("practicas");
+practicas.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
-practicas.sort(
-  (a, b) => b.data.date.valueOf() - a.data.date.valueOf()
-);
+const featured = practicas.slice(0, 3);
 ---
 
 <Layout
-  title="Prácticas y proyectos"
-  description="Blog personal de prácticas de sistemas, redes, bases de datos y desarrollo."
+  title="Sergio Mesa | Prácticas de ASIR"
+  description="Cuaderno técnico personal de Sergio Mesa durante el ciclo de Administración de Sistemas Informáticos en Red."
 >
   <section class="hero">
-    <p class="eyebrow">Blog técnico personal</p>
+    <p class="eyebrow">Cuaderno técnico de Sergio Mesa</p>
 
-    <h1>Prácticas y proyectos</h1>
+    <h1>
+      Aprender sistemas consiste en
+      <span>ponerlos a prueba.</span>
+    </h1>
 
     <p class="intro">
-      Un espacio donde documento mis prácticas de sistemas,
-      redes, servidores, bases de datos y desarrollo.
-    </p>
-  </section>
-
-  <section class="subjects-link">
-    <p class="eyebrow">Organización</p>
-
-    <h2>Explora por asignatura</h2>
-
-    <p>
-      Consulta las prácticas agrupadas según el módulo formativo.
+      Este es mi espacio personal para documentar el trabajo realizado durante
+      el ciclo de Administración de Sistemas Informáticos en Red. Aquí reúno
+      prácticas, configuraciones, errores y soluciones que forman parte de mi
+      recorrido como alumno de ASIR.
     </p>
 
-    <a href="/asignaturas">
-      Ver todas las asignaturas →
-    </a>
+    <div class="hero-actions">
+      <a class="primary-button" href="#practicas">Ver mis prácticas</a>
+      <a class="secondary-button" href="/asignaturas/">Explorar módulos</a>
+    </div>
   </section>
 
-  <section id="practicas">
-    <div class="section-heading">
-      <p class="eyebrow">Documentación</p>
-      <h2>Últimas prácticas</h2>
+  <section class="about" aria-labelledby="about-title">
+    <div>
+      <p class="eyebrow">Sobre este espacio</p>
+      <h2 id="about-title">Una bitácora de trabajo, no una colección de apuntes.</h2>
     </div>
 
-    {practicas.length === 0 ? (
-      <p class="empty">
-        Todavía no hay prácticas publicadas.
-      </p>
+    <p>
+      Cada entrada nace de una tarea concreta: preparar una máquina, levantar
+      un servicio, revisar una configuración o entender por qué algo no
+      funciona a la primera. La documentación recoge el proceso para poder
+      volver sobre él y explicar qué he aprendido.
+    </p>
+  </section>
+
+  <section id="practicas" class="practice-section">
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Trabajo reciente</p>
+        <h2>Prácticas documentadas</h2>
+      </div>
+      <p>Una selección de los últimos trabajos incorporados al cuaderno.</p>
+    </div>
+
+    {featured.length === 0 ? (
+      <p class="empty">Todavía no hay prácticas publicadas.</p>
     ) : (
       <div class="grid">
-        {practicas.map((practica) => (
+        {featured.map((practica) => (
           <article class="card">
-            <p class="subject">{practica.data.subject}</p>
-
-            <h3>{practica.data.title}</h3>
-
-            <p class="description">
-              {practica.data.description}
-            </p>
-
-            <div class="tags">
-              {practica.data.tags.map((tag) => (
-                <span>{tag}</span>
-              ))}
+            <div class="card-topline">
+              <span>{practica.data.subject}</span>
+              <time datetime={practica.data.date.toISOString()}>
+                {practica.data.date.toLocaleDateString("es-ES")}
+              </time>
             </div>
 
-            <a
-              class="read-more"
-              href={`/practicas/${practica.id}`}
-            >
-              Leer práctica →
+            <h3>{practica.data.title}</h3>
+            <p>{practica.data.description}</p>
+
+            <div class="tags">
+              {practica.data.tags.slice(0, 3).map((tag) => <span>{tag}</span>)}
+            </div>
+
+            <a class="read-more" href={`/practicas/${practica.id}`}>
+              Leer la práctica <span aria-hidden="true">→</span>
             </a>
           </article>
         ))}
       </div>
     )}
   </section>
+
+  <section class="closing">
+    <p class="eyebrow">El camino sigue</p>
+    <h2>Más configuraciones, más pruebas y más cosas que entender.</h2>
+    <a class="read-more" href="/asignaturas/">Ver todas las asignaturas →</a>
+  </section>
 </Layout>
 
 <style>
   .hero {
-    padding: 80px 0 90px;
+    max-width: 900px;
+    padding: 82px 0 105px;
   }
 
-  .eyebrow,
-  .subject {
-    color: #8fa7ff;
-    font-size: 0.85rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
+  .eyebrow {
+    margin: 0 0 18px;
+    color: #91a8ff;
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
   }
 
   h1 {
-    max-width: 800px;
-    margin: 18px 0;
-    font-size: clamp(3rem, 8vw, 6.5rem);
-    line-height: 0.95;
-    letter-spacing: -0.07em;
+    max-width: 850px;
+    margin: 0;
+    color: #f5f7ff;
+    font-size: clamp(3.2rem, 8vw, 7rem);
+    line-height: 0.98;
+    letter-spacing: -0.075em;
   }
 
-  h2 {
-    font-size: 2.3rem;
+  h1 span {
+    display: block;
+    color: #aebeff;
   }
 
   .intro {
-    max-width: 650px;
-    color: #aeb3c0;
-    font-size: 1.2rem;
-    line-height: 1.7;
+    max-width: 680px;
+    margin: 30px 0 0;
+    color: #bdc3d1;
+    font-size: 1.18rem;
+    line-height: 1.8;
   }
 
-  .subjects-link {
-    margin-bottom: 90px;
-    padding: 28px;
-    border: 1px solid #2b2e38;
-    border-radius: 20px;
-    background: #17191f;
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 32px;
   }
 
-  .subjects-link p {
-    color: #aeb3c0;
-    line-height: 1.6;
-  }
-
-  .subjects-link a,
-  .read-more {
-    color: #b8c5ff;
-    font-weight: 700;
+  .primary-button,
+  .secondary-button {
+    display: inline-block;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-weight: 750;
     text-decoration: none;
   }
 
+  .primary-button {
+    color: #10131c;
+    background: #bdcaff;
+  }
+
+  .secondary-button {
+    color: #d3dcff;
+    border: 1px solid #4a5b9e;
+    background: #1b2240;
+  }
+
+  .about {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 50px;
+    margin-bottom: 110px;
+    padding: 34px 0;
+    border-top: 1px solid #2b3040;
+    border-bottom: 1px solid #2b3040;
+  }
+
+  h2 {
+    margin: 0;
+    color: #f1f3fa;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    line-height: 1.1;
+    letter-spacing: -0.04em;
+  }
+
+  .about p:last-child,
+  .section-heading > p {
+    margin: 0;
+    color: #aeb3c0;
+    line-height: 1.75;
+  }
+
+  .practice-section {
+    margin-bottom: 110px;
+  }
+
   .section-heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 30px;
     margin-bottom: 28px;
+  }
+
+  .section-heading h2 {
+    font-size: clamp(2rem, 4vw, 3.4rem);
+  }
+
+  .section-heading > p {
+    max-width: 300px;
   }
 
   .grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
-    gap: 20px;
+    gap: 18px;
   }
 
   .card {
-    padding: 26px;
-    border: 1px solid #2b2e38;
-    border-radius: 20px;
-    background: #17191f;
+    display: flex;
+    flex-direction: column;
+    min-height: 310px;
+    padding: 24px;
+    border: 1px solid #2f3547;
+    border-radius: 16px;
+    background: #171a22;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .card:hover {
+    border-color: #596ba9;
+    transform: translateY(-4px);
+  }
+
+  .card-topline {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    color: #91a8ff;
+    font-size: 0.73rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .card-topline time {
+    color: #737c91;
+    font-weight: 500;
+    letter-spacing: 0;
+    text-transform: none;
   }
 
   .card h3 {
-    font-size: 1.45rem;
+    margin: 28px 0 12px;
+    color: #f1f3fa;
+    font-size: 1.4rem;
+    line-height: 1.2;
   }
 
-  .description,
-  .empty {
+  .card p {
+    margin: 0;
     color: #aeb3c0;
-    line-height: 1.6;
+    line-height: 1.65;
   }
 
   .tags {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 7px;
     margin: 22px 0;
   }
 
   .tags span {
-    padding: 6px 10px;
+    padding: 5px 8px;
     border-radius: 999px;
-    color: #cbd4ff;
-    background: #272d4a;
-    font-size: 0.8rem;
+    color: #cbd5ff;
+    background: #242b4a;
+    font-size: 0.75rem;
+  }
+
+  .read-more {
+    margin-top: auto;
+    color: #b9c6ff;
+    font-weight: 750;
+    text-decoration: none;
+  }
+
+  .read-more:hover {
+    color: #ffffff;
+  }
+
+  .closing {
+    max-width: 650px;
+    margin-bottom: 30px;
+    padding: 34px;
+    border: 1px solid #303752;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #1b2138, #171a22);
+  }
+
+  .closing h2 {
+    margin-bottom: 25px;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+  }
+
+  .empty {
+    color: #aeb3c0;
+  }
+
+  @media (max-width: 700px) {
+    .hero {
+      padding: 55px 0 75px;
+    }
+
+    .about,
+    .section-heading {
+      display: block;
+    }
+
+    .about > p,
+    .section-heading > p {
+      margin-top: 24px;
+    }
   }
 </style>
