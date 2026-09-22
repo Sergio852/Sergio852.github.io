@@ -41,7 +41,7 @@ case "$SUBJECT_DIR" in
   administracion-sistemas-operativos)
     SUBJECT_SLUG="administracion-sistemas-operativos"
     ;;
-  implantacion-aplicaciones-web)
+  implantacion-aplicaciones-web|AppWeb|appweb)
     SUBJECT_SLUG="implantacion-aplicaciones-web"
     ;;
   seguridad-alta-disponibilidad)
