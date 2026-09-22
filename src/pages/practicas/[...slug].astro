@@ -24,7 +24,7 @@ const { Content } = await render(practica);
   description={practica.data.description}
 >
   <article class="article">
-    <a class="back" href="/asignaturas">
+    <a class="back" href="/asignaturas/">
       ← Volver a asignaturas
     </a>
 
@@ -41,7 +41,36 @@ const { Content } = await render(practica);
     </p>
 
     <div class="tags">
-      {practica.data.tags.map((tag) => <span>{tag}</span>)}
+      {practica.data.tags.map((tag) => (
+        <span>{tag}</span>
+      ))}
+    </div>
+
+    <div class="actions">
+      {practica.data.pdf ? (
+        <>
+          <a
+            class="pdf-button"
+            href={`/pdfs/${practica.data.pdf}`}
+            target="_blank"
+            rel="noopener"
+          >
+            📄 Abrir práctica completa en PDF
+          </a>
+
+          <a
+            class="download-button"
+            href={`/pdfs/${practica.data.pdf}`}
+            download
+          >
+            Descargar PDF
+          </a>
+        </>
+      ) : (
+        <p class="no-pdf">
+          Esta práctica todavía no tiene un PDF asociado.
+        </p>
+      )}
     </div>
 
     <hr />
@@ -104,6 +133,45 @@ const { Content } = await render(practica);
     font-size: 0.8rem;
   }
 
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 28px;
+  }
+
+  .pdf-button,
+  .download-button {
+    display: inline-block;
+    padding: 13px 18px;
+    border-radius: 10px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .pdf-button {
+    color: #101114;
+    background: #b8c5ff;
+  }
+
+  .pdf-button:hover {
+    background: #d2daff;
+  }
+
+  .download-button {
+    color: #d5dcff;
+    border: 1px solid #4e5d9c;
+    background: #202640;
+  }
+
+  .download-button:hover {
+    background: #2b3560;
+  }
+
+  .no-pdf {
+    color: #e2a7a7;
+  }
+
   hr {
     margin: 45px 0;
     border: 0;
@@ -134,5 +202,11 @@ const { Content } = await render(practica);
     border-radius: 5px;
     color: #d5dcff;
     background: #272d4a;
+  }
+
+  .content :global(img) {
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
   }
 </style>
