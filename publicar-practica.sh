@@ -50,7 +50,7 @@ case "$SUBJECT_DIR" in
   infraestructura-virtual)
     SUBJECT_SLUG="infraestructura-virtual"
     ;;
-  servicios-red-internet)
+  servicios-red-internet|Servicios|servicios)
     SUBJECT_SLUG="servicios-red-internet"
     ;;
   bases-datos)
