@@ -38,7 +38,7 @@ SUBJECT_DIR="$(basename "$(dirname "$PRACTICA_DIR")")"
 SLUG="$(basename "$PRACTICA_DIR")"
 
 case "$SUBJECT_DIR" in
-  administracion-sistemas-operativos)
+  administracion-sistemas-operativos|Sistemas|sistemas)
     SUBJECT_SLUG="administracion-sistemas-operativos"
     ;;
   implantacion-aplicaciones-web|AppWeb|appweb)
