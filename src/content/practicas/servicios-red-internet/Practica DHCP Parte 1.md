@@ -9,7 +9,7 @@ tags:
   - SNAT
   - DNAT
   - NAT
-pdf: "servicios-de-red-e-internet/practica-router-snat-dnat-parte1.pdf"
+pdf: "servicios-red-internet/Practica DHCP Parte 1.pdf"
 ---
 
 # Práctica: Configuración de un router (SNAT, DNAT y DHCP)
