@@ -1,6 +1,6 @@
 ---
 title: "Tarea 2: Ejecución de playbooks"
-subject: "Proyecto Intermodular"
+subject: "Proyecto Intermodular de Administración de Sistemas Informáticos en Red"
 description: "Configuración de una máquina Debian mediante un playbook de Ansible trabajado desde un fork."
 date: 2026-09-27
 tags:
