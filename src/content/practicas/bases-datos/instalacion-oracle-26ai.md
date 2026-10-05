@@ -1,6 +1,6 @@
 ---
 title: "Instalación de Oracle 26ai en una máquina virtual Debian y conexión con SQL Developer"
-subject: "Base de Datos"
+subject: "Bases de Datos"
 description: "Guía de instalación de Oracle Database 26ai en Debian dentro de una máquina virtual y conexión desde SQL Developer."
 date: 2026-10-05
 tags:
