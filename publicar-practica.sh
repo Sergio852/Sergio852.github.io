@@ -53,7 +53,7 @@ case "$SUBJECT_DIR" in
   servicios-red-internet|Servicios|servicios)
     SUBJECT_SLUG="servicios-red-internet"
     ;;
-  bases-datos)
+  bases-datos|Base-Datos|base-datos)
     SUBJECT_SLUG="bases-datos"
     ;;
   ingles)
