@@ -1,151 +1,302 @@
 ---
-title: "Instalación de Oracle 26ai en una máquina virtual Debian y conexión con SQL Developer"
+title: "Instalación de Oracle AI Database 26ai Free en Debian 13"
+author: "Sergio Mesa"
 subject: "Bases de Datos"
-description: "Guía de instalación de Oracle Database 26ai en Debian dentro de una máquina virtual y conexión desde SQL Developer."
-date: 2026-10-05
+description: "Guía de instalación y configuración de Oracle AI Database 26ai Free en Debian 13 y conexión desde SQL Developer."
+date: 2026-10-06
 tags:
   - Oracle
   - Oracle Database 26ai
-  - Debian
+  - Debian 13
   - SQL Developer
   - Virtualización
 pdf: "bases-datos/instalacion-oracle-26ai.pdf"
 ---
+# Instalación de Oracle AI Database 26ai Free en una máquina virtual Debian 13 y conexión con SQL Developer
 
-# Oracle AI Database 26ai Free en una VM y SQL Developer en el host
+## 1. Objetivo
 
-> Guía práctica completa para instalar, arrancar y validar Oracle AI Database 26ai Free en una máquina virtual Linux, y conectarse desde Oracle SQL Developer instalado en el equipo anfitrión.
->
-> **Escenario validado en esta práctica:**
->
-> - Servidor Oracle (VM): `oracle26ai`
-> - IP de la VM: `192.168.122.54`
-> - Listener: TCP `1521`
-> - Servicio de la PDB: `FREEPDB1`
-> - Cliente: Oracle SQL Developer 26.2.0 instalado en el host Linux
-> - JDK del host: OpenJDK `21.0.12.1`
-> - Usuario usado para comprobar la conectividad: `SYSTEM`
+En esta práctica se instala y configura Oracle AI Database 26ai Free en una máquina virtual con Debian 13. Posteriormente se instala Oracle SQL Developer en el equipo host y se realiza una conexión remota a la base de datos.
+
+La conexión final se realiza contra la PDB `FREEPDB1` usando la dirección IP `192.168.122.54`, el puerto `1521` y el nombre de servicio `FREEPDB1`.
 
 ---
 
-## 1. Objetivo y arquitectura
+## 2. Entorno utilizado
 
-La base de datos Oracle se ejecuta dentro de una máquina virtual; Oracle SQL Developer se ejecuta en el sistema host. SQL Developer accede a la VM mediante TCP/IP a través del *listener* de Oracle.
+| Elemento              | Valor                        |
+| --------------------- | ---------------------------- |
+| Alumno                | Sergio Mesa                  |
+| Fecha                 | 6 de octubre de 2026         |
+| Equipo host           | Sergio-PC                    |
+| Máquina virtual       | `oracle26ai`                 |
+| Sistema de la VM      | Debian 13                    |
+| Disco de la VM        | 50 GB                        |
+| Dirección IP de la VM | `192.168.122.54`             |
+| Base de datos         | Oracle AI Database 26ai Free |
+| Base contenedora      | `FREE`                       |
+| Base pluggable        | `FREEPDB1`                   |
+| Puerto del listener   | `1521`                       |
+| Cliente               | Oracle SQL Developer 26.2.0  |
+| Java del host         | OpenJDK 21.0.12.1            |
+
+---
+
+## 3. Esquema de la conexión
 
 ```text
-┌──────────────────────────────────┐
-│ Host Linux                       │
-│                                  │
-│ Oracle SQL Developer 26.2.0      │
-└───────────────┬──────────────────┘
-                │
-                │ TCP/IP
-                │ 192.168.122.54:1521
-                │ Service name: FREEPDB1
-                ▼
-┌──────────────────────────────────┐
-│ Máquina virtual Linux            │
-│ Hostname: oracle26ai             │
-│                                  │
-│ Oracle AI Database 26ai Free     │
-│ Listener + CDB FREE + PDB        │
-│ FREEPDB1                         │
-└──────────────────────────────────┘
+┌───────────────────────────────────┐
+│ Equipo host: Sergio-PC            │
+│                                   │
+│ Oracle SQL Developer 26.2.0       │
+└──────────────┬────────────────────┘
+               │ TCP/IP
+               │ 192.168.122.54:1521
+               │ Servicio: FREEPDB1
+               ▼
+┌───────────────────────────────────┐
+│ Máquina virtual: oracle26ai       │
+│ Sistema: Debian 13                │
+│                                   │
+│ Oracle AI Database 26ai Free      │
+│ CDB: FREE                         │
+│ PDB: FREEPDB1                     │
+│ Listener: puerto 1521             │
+└───────────────────────────────────┘
 ```
 
-La práctica se considera terminada cuando desde SQL Developer se puede conectar a `FREEPDB1` y ejecutar una consulta que confirme la base de datos, servicio, host y usuario.
-
 ---
 
-## 2. Consideraciones sobre Debian
+## 4. Requisitos de la máquina virtual
 
-Oracle AI Database Free para Linux se distribuye oficialmente para plataformas compatibles con paquetes RPM. La documentación oficial de instalación 26ai para Linux debe ser siempre la fuente principal para la versión de paquete, los prerrequisitos y los nombres de servicio.[^oracle26ai]
-
-Si la VM es Debian, **documenta el método real con el que se instaló Oracle en tu entorno**. No es recomendable instalar un RPM de Oracle directamente en Debian sin un procedimiento soportado: los scripts de configuración, dependencias y servicios están preparados para sistemas RPM compatibles.
-
-Esta guía separa dos cosas:
-
-1. El flujo general y verificable de Oracle Database dentro de la VM.
-2. La configuración real completada en el host Linux para usar SQL Developer y conectarse a la VM.
-
----
-
-## 3. Preparación de la máquina virtual
-
-Antes de instalar o intentar una conexión remota, comprueba que la VM tiene una red accesible desde el host y que su nombre e IP son correctos.
-
-Ejecuta dentro de la VM:
+Antes de instalar Oracle se comprueban los recursos de la máquina virtual y la configuración de red:
 
 ```bash
 hostname
 hostname -f
 ip -br a
-getent hosts "$(hostname -f)"
+free -h
+df -h /
 ```
 
-En este caso, el servidor se identificó como:
+La máquina virtual utilizada tiene 50 GB de disco y dispone de una IP accesible desde el host: `192.168.122.54`.
 
-```text
-Hostname: oracle26ai
-IP:       192.168.122.54
-```
+Para una instalación de prácticas se recomienda disponer de al menos 2 GB de RAM, 2 GB de swap y espacio libre suficiente en `/opt`.
 
-### Recursos recomendados
-
-| Recurso | Recomendación práctica |
-|---|---|
-| RAM | Para laboratorio, asignar al menos 2 GB y disponer de swap. Más memoria mejora el arranque y la administración |
-| CPU | Dos vCPU o más si el host tiene recursos disponibles |
-| Disco | Reservar espacio para el software, ficheros de datos, logs y futuras prácticas |
-| Red | Usar una red desde la que el host pueda alcanzar la IP de la VM |
-| Nombre de host | Mantener una resolución local coherente para el hostname de la VM |
-
-### Prueba de red desde el host
-
-Desde el host, antes de configurar SQL Developer:
+Si no existe swap, se puede crear un fichero de 2 GB:
 
 ```bash
-ping -c 3 192.168.122.54
-nc -vz 192.168.122.54 1521
+sudo fallocate -l 2G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+sudo sh -c 'echo "/swapfile swap swap defaults 0 0" >> /etc/fstab'
+free -h
 ```
-
-- Si `ping` falla, revisa el modo de red de la VM, la IP y el firewall.
-- Si `ping` funciona pero `nc` falla en el puerto 1521, revisa el listener de Oracle o el firewall del servidor.
-- Si ambos funcionan, existe conectividad básica y el puerto Oracle es accesible.
 
 ---
 
-## 4. Instalación y configuración de Oracle AI Database 26ai Free
+## 5. Preparación de Debian 13
 
-> Los nombres exactos del paquete y del servicio pueden variar entre compilaciones y plataformas. Compruébalos siempre en la documentación y en el paquete descargado.
-
-El flujo estándar en una distribución Linux RPM compatible es:
-
-1. Instalar los prerrequisitos de Oracle.
-2. Instalar el paquete de Oracle AI Database Free.
-3. Ejecutar el script de configuración inicial.
-4. Definir las contraseñas de las cuentas administrativas cuando el instalador lo solicite.
-5. Habilitar el servicio y comprobar el listener.
-
-Ejemplo de referencia para una plataforma RPM compatible:
+Se actualiza el sistema e instalan las herramientas necesarias:
 
 ```bash
-sudo dnf install -y oracle-ai-database-preinstall-26ai
-sudo dnf install -y ./oracle-ai-database-free-26ai-*.rpm
-sudo /etc/init.d/oracle-free-26ai configure
-sudo systemctl enable --now oracle-free-26ai
-sudo systemctl status oracle-free-26ai
+sudo apt update
+sudo apt upgrade -y
+sudo apt install -y alien libaio1 libnsl2 netcat-openbsd unzip
 ```
 
-Durante la configuración inicial, Oracle crea normalmente:
+Se comprueba el nombre completo de la máquina virtual:
 
-- La base contenedora (**CDB**) `FREE`.
-- La base pluggable por defecto (**PDB**) `FREEPDB1`.
-- El listener Oracle, normalmente en el puerto TCP `1521`.
+```bash
+hostname
+hostname -f
+getent hosts "$(hostname -f)"
+```
 
-### Variables de entorno administrativas
+Si fuera necesario, se añade el nombre de la máquina al fichero `/etc/hosts`:
 
-En la VM, ajusta estas variables a la ruta de tu instalación para administrar Oracle con sus herramientas:
+```bash
+sudo nano /etc/hosts
+```
+
+Ejemplo de entrada para esta práctica:
+
+```text
+192.168.122.54 oracle26ai
+```
+
+---
+
+## 6. Instalación de Oracle AI Database 26ai Free
+
+Se descarga desde la página oficial de Oracle el paquete de Oracle AI Database 26ai Free para Linux de 64 bits y se guarda en el directorio de descargas de la máquina virtual.
+
+```bash
+cd ~/Descargas
+ls -lh
+```
+
+Al trabajar con Debian 13, el paquete RPM se instala mediante `alien`:
+
+```bash
+cd ~/Descargas
+sudo alien -i oracle-ai-database-free-26ai-*.rpm
+```
+
+Una vez terminada la instalación se comprueba que el software Oracle está disponible:
+
+```bash
+find /opt/oracle -type f -name sqlplus 2>/dev/null
+dpkg -l | grep -i oracle
+```
+
+---
+
+## 7. Configuración inicial de Oracle
+
+Después de instalar el software se ejecuta el script de configuración:
+
+```bash
+sudo /etc/init.d/oracle-free-26ai configure
+```
+
+Durante este proceso se establece la contraseña de las cuentas administrativas de Oracle.
+
+La configuración crea los siguientes elementos:
+
+- La base contenedora `FREE`.
+- La base pluggable `FREEPDB1`.
+- El listener Oracle en el puerto `1521`.
+- Los directorios y ficheros necesarios para la base de datos.
+
+---
+
+## 8. Servicio de arranque automático en Debian
+
+### 8.1. Problema encontrado
+
+El instalador de Oracle añade el script clásico:
+
+```text
+/etc/init.d/oracle-free-26ai
+```
+
+Este script permite arrancar y detener la base de datos manualmente:
+
+```bash
+sudo /etc/init.d/oracle-free-26ai start
+sudo /etc/init.d/oracle-free-26ai stop
+sudo /etc/init.d/oracle-free-26ai status
+```
+
+El arranque manual funciona y muestra un resultado similar a este:
+
+```text
+Starting Oracle Net Listener.
+Oracle Net Listener started.
+Starting Oracle AI Database instance FREE.
+Oracle AI Database instance FREE started.
+```
+
+Sin embargo, al intentar habilitar directamente el script mediante systemd se obtiene el siguiente problema:
+
+```bash
+sudo systemctl is-enabled oracle-free-26ai
+sudo systemctl is-active oracle-free-26ai
+```
+
+La salida muestra que el servicio aparece como `disabled` e `inactive`, aunque el script de inicio pueda arrancar Oracle manualmente.
+
+El motivo es que `oracle-free-26ai` es un script SysV de `/etc/init.d/` y no una unidad systemd nativa. En Debian, el script no contiene la información de niveles de arranque que necesita `update-rc.d` para habilitarlo directamente.
+
+Por ese motivo, este comando devuelve un error:
+
+```bash
+sudo systemctl enable oracle-free-26ai
+```
+
+```text
+update-rc.d: error: oracle-free-26ai Default-Start contains no runlevels, aborting.
+```
+
+### 8.2. Solución: crear una unidad systemd propia
+
+Se crea una unidad systemd llamada `oracle26ai.service`. Esta unidad utiliza el script original de Oracle para iniciar y detener la base de datos, pero permite a Debian habilitar el arranque automático correctamente.
+
+Se crea el fichero de servicio:
+
+```bash
+sudo tee /etc/systemd/system/oracle26ai.service > /dev/null <<'EOF'
+[Unit]
+Description=Oracle AI Database 26ai Free
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/etc/init.d/oracle-free-26ai start
+ExecStop=/etc/init.d/oracle-free-26ai stop
+TimeoutStartSec=10min
+TimeoutStopSec=10min
+
+[Install]
+WantedBy=multi-user.target
+EOF
+```
+
+Se recarga systemd, se habilita el servicio y se inicia:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable oracle26ai.service
+sudo systemctl start oracle26ai.service
+```
+
+Se comprueba el estado:
+
+```bash
+sudo systemctl is-enabled oracle26ai.service
+sudo systemctl is-active oracle26ai.service
+sudo systemctl status oracle26ai.service --no-pager
+```
+
+Resultado obtenido:
+
+```text
+enabled
+active
+```
+
+El estado completo puede aparecer como:
+
+```text
+Active: active (exited)
+```
+
+Este estado es correcto. La unidad ejecuta el script de Oracle, el script arranca la instancia y el listener en segundo plano, y después termina. `RemainAfterExit=yes` mantiene la unidad marcada como activa.
+
+A partir de este punto, la base de datos se gestiona con los siguientes comandos:
+
+```bash
+sudo systemctl start oracle26ai.service
+sudo systemctl stop oracle26ai.service
+sudo systemctl restart oracle26ai.service
+sudo systemctl status oracle26ai.service --no-pager
+```
+
+![](imagenes/2026-10-06-21-58-47-image.png)
+
+## 9. Preparar el usuario Oracle
+
+Se entra con el usuario `oracle`:
+
+```bash
+sudo su - oracle
+```
+
+Se cargan las variables del entorno de Oracle:
 
 ```bash
 export ORACLE_HOME=/opt/oracle/product/26ai/dbhomeFree
@@ -153,95 +304,307 @@ export ORACLE_SID=FREE
 export PATH="$ORACLE_HOME/bin:$PATH"
 ```
 
-> La ruta de `ORACLE_HOME` puede diferir. Confirma el valor real en tu instalación antes de añadirlo a `.bashrc` o a otro fichero de perfil.
+Se comprueba que SQL*Plus está disponible:
+
+```bash
+which sqlplus
+sqlplus -v
+```
+
+Para cargar estas variables en futuras sesiones se añaden al perfil del usuario Oracle:
+
+```bash
+cat >> ~/.bash_profile <<'EOF'
+export ORACLE_HOME=/opt/oracle/product/26ai/dbhomeFree
+export ORACLE_SID=FREE
+export PATH="$ORACLE_HOME/bin:$PATH"
+EOF
+```
+
+Después se recarga el perfil:
+
+```bash
+source ~/.bash_profile
+```
 
 ---
 
-## 5. Comprobación del servidor Oracle
+## 10. Comprobación de la base de datos
 
-### 5.1. Verificar el listener
-
-En la VM, como usuario con el entorno de Oracle cargado:
-
-```bash
-lsnrctl status
-```
-
-También resulta útil:
-
-```bash
-lsnrctl services
-```
-
-El resultado debe mostrar que el listener está activo, normalmente en el puerto `1521`, y debe registrar los servicios de base de datos correspondientes. La conectividad remota hacia Oracle Database Free se realiza a través del listener TCP/IP.[^oracleconnect]
-
-### 5.2. Verificar que las PDB están abiertas
+Como usuario `oracle`, se abre SQL*Plus como administrador:
 
 ```bash
 sqlplus / as sysdba
 ```
 
-Dentro de SQL*Plus:
+Dentro de SQL*Plus se comprueba el estado de la base de datos:
+
+```sql
+SELECT name, open_mode
+FROM v$database;
+```
+
+Se comprueba el estado de las PDB:
 
 ```sql
 SHOW PDBS;
+```
 
+También se puede usar:
+
+```sql
 SELECT name, open_mode
 FROM v$pdbs;
 ```
 
-Se espera ver la PDB `FREEPDB1` en estado `READ WRITE` para poder conectarse a ella normalmente.
+La PDB `FREEPDB1` debe aparecer en modo `READ WRITE`.
 
-### 5.3. Abrir la PDB si fuera necesario
-
-Si `FREEPDB1` no está abierta:
+Si aparece cerrada, se abre y se guarda ese estado:
 
 ```sql
 ALTER PLUGGABLE DATABASE FREEPDB1 OPEN;
 ALTER PLUGGABLE DATABASE FREEPDB1 SAVE STATE;
 ```
 
-`SAVE STATE` ayuda a que la PDB conserve su estado de apertura después de reiniciar la instancia, según la configuración del entorno.
+---
 
-### 5.4. Abrir el firewall de la VM
+## 11. Parámetros de arranque: SPFILE
 
-Si se utiliza `firewalld`, abre el puerto del listener:
+El SPFILE es el fichero que Oracle utiliza para guardar los parámetros de arranque de la instancia.
+
+Dentro de SQL*Plus, conectado como SYSDBA, se muestra el SPFILE que se está usando:
+
+```sql
+SHOW PARAMETER spfile;
+```
+
+La salida muestra una ruta parecida a:
+
+```text
+/opt/oracle/product/26ai/dbhomeFree/dbs/spfileFREE.ora
+```
+
+![](imagenes/2026-10-06-22-01-33-image.png)
+
+Se consultan los parámetros principales relacionados con la base de datos, la instancia y los servicios:
+
+```sql
+COLUMN name FORMAT A20
+COLUMN value FORMAT A70
+
+SELECT name, value
+FROM v$parameter
+WHERE name IN (
+  'db_name',
+  'instance_name',
+  'service_names',
+  'local_listener'
+)
+ORDER BY name;
+```
+
+![](imagenes/2026-10-06-22-04-10-image.png)
+
+| Parámetro        | Función                                                        |
+| ---------------- | -------------------------------------------------------------- |
+| `db_name`        | Nombre de la base contenedora, normalmente `FREE`              |
+| `instance_name`  | Nombre de la instancia Oracle, normalmente `FREE`              |
+| `service_names`  | Servicios que Oracle publica para aceptar conexiones           |
+| `local_listener` | Listener local que utiliza Oracle para registrar sus servicios |
+
+El servicio usado para conectarse a la base pluggable es `FREEPDB1`.
+
+---
+
+## 12. Configuración del listener
+
+El listener es el proceso que recibe conexiones de red y las dirige al servicio Oracle solicitado.
+
+La conexión de esta práctica utiliza:
+
+```text
+IP:        192.168.122.54
+Puerto:    1521
+Servicio:  FREEPDB1
+```
+
+Para evitar problemas con el entorno del usuario, el estado del listener se consulta desde el usuario `sergio` indicando el entorno de Oracle de forma explícita:
+
+```bash
+sudo -u oracle env \
+  ORACLE_HOME=/opt/oracle/product/26ai/dbhomeFree \
+  ORACLE_SID=FREE \
+  PATH=/opt/oracle/product/26ai/dbhomeFree/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+  /opt/oracle/product/26ai/dbhomeFree/bin/lsnrctl status
+```
+
+![](imagenes/2026-10-06-22-04-59-image.png)
+
+Para mostrar los servicios registrados:
+
+```bash
+sudo -u oracle env \
+  ORACLE_HOME=/opt/oracle/product/26ai/dbhomeFree \
+  ORACLE_SID=FREE \
+  PATH=/opt/oracle/product/26ai/dbhomeFree/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+  /opt/oracle/product/26ai/dbhomeFree/bin/lsnrctl services
+```
+
+En la salida debe aparecer el servicio `FREEPDB1`:
+
+```text
+Service "FREEPDB1" has 1 instance(s).
+```
+
+![](imagenes/2026-10-06-22-05-33-image.png)
+
+### 12.1. Fichero `listener.ora`
+
+El fichero de configuración del listener suele estar en:
+
+```text
+$ORACLE_HOME/network/admin/listener.ora
+```
+
+Se muestra su contenido con:
+
+```bash
+sudo -u oracle env \
+  ORACLE_HOME=/opt/oracle/product/26ai/dbhomeFree \
+  PATH=/opt/oracle/product/26ai/dbhomeFree/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+  nl -ba /opt/oracle/product/26ai/dbhomeFree/network/admin/listener.ora
+```
+
+![](imagenes/2026-10-06-22-06-14-image.png)
+
+Un fichero de listener básico puede tener esta estructura:
+
+```text
+LISTENER =
+  (DESCRIPTION_LIST =
+    (DESCRIPTION =
+      (ADDRESS = (PROTOCOL = TCP)(HOST = oracle26ai)(PORT = 1521))
+    )
+  )
+```
+
+| Elemento            | Función                                  |
+| ------------------- | ---------------------------------------- |
+| `LISTENER`          | Nombre del proceso listener              |
+| `PROTOCOL = TCP`    | Comunicación mediante TCP/IP             |
+| `HOST = oracle26ai` | Máquina donde se ejecuta Oracle          |
+| `PORT = 1521`       | Puerto utilizado para recibir conexiones |
+
+---
+
+## 13. Configuración de `tnsnames.ora`
+
+`tnsnames.ora` permite definir alias de conexión para no repetir siempre la dirección IP, el puerto y el servicio de Oracle.
+
+El fichero suele estar en:
+
+```text
+$ORACLE_HOME/network/admin/tnsnames.ora
+```
+
+Se muestra su contenido:
+
+```bash
+sudo -u oracle env \
+  ORACLE_HOME=/opt/oracle/product/26ai/dbhomeFree \
+  PATH=/opt/oracle/product/26ai/dbhomeFree/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+  nl -ba /opt/oracle/product/26ai/dbhomeFree/network/admin/tnsnames.ora
+```
+
+![](imagenes/2026-10-06-22-09-06-image.png)
+
+Antes de modificarlo se crea una copia de seguridad:
+
+```bash
+sudo cp /opt/oracle/product/26ai/dbhomeFree/network/admin/tnsnames.ora \
+  /opt/oracle/product/26ai/dbhomeFree/network/admin/tnsnames.ora.bak
+```
+
+Se edita el fichero con el usuario Oracle:
+
+```bash
+sudo -u oracle nano /opt/oracle/product/26ai/dbhomeFree/network/admin/tnsnames.ora
+```
+
+Al final del fichero se añade el alias de la máquina virtual:
+
+```text
+FREEPDB1_VM =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = 192.168.122.54)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVICE_NAME = FREEPDB1)
+    )
+  )
+```
+
+Se comprueba el alias con:
+
+```bash
+sudo -u oracle env \
+  ORACLE_HOME=/opt/oracle/product/26ai/dbhomeFree \
+  ORACLE_SID=FREE \
+  PATH=/opt/oracle/product/26ai/dbhomeFree/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+  /opt/oracle/product/26ai/dbhomeFree/bin/tnsping FREEPDB1_VM
+```
+
+El resultado correcto termina con una línea parecida a:
+
+```text
+OK (x msec)
+```
+
+![](imagenes/2026-10-06-22-09-33-image.png)
+
+| Campo          | Función                                            |
+| -------------- | -------------------------------------------------- |
+| `FREEPDB1_VM`  | Nombre corto elegido para la conexión              |
+| `HOST`         | Dirección IP de la máquina virtual Oracle          |
+| `PORT`         | Puerto del listener                                |
+| `SERVICE_NAME` | Servicio de la PDB a la que se realiza la conexión |
+
+---
+
+## 14. Comprobación de red y firewall
+
+Desde el equipo host se comprueba que la máquina virtual responde y que el puerto Oracle está disponible:
+
+```bash
+ping -c 3 192.168.122.54
+nc -vz 192.168.122.54 1521
+```
+
+Si se utiliza `firewalld` dentro de la VM, se puede abrir el puerto 1521:
 
 ```bash
 sudo firewall-cmd --permanent --add-port=1521/tcp
 sudo firewall-cmd --reload
-```
-
-Comprueba la regla:
-
-```bash
 sudo firewall-cmd --list-ports
 ```
 
 ---
 
-## 6. Instalación de Oracle SQL Developer en el host
+## 15. Instalación de Java y JavaFX en el host
 
-SQL Developer es un cliente gráfico gratuito que permite explorar objetos de base de datos, ejecutar SQL y administrar conexiones.[^sqldev]
-
-SQL Developer 26.2 requiere un JDK 17 o superior.[^sqldevjdk]
-
-### 6.1. Instalar Java y JavaFX
-
-En el host Linux basado en Debian se utilizó OpenJDK 21 y OpenJFX:
+En el equipo host se instala OpenJDK 21 y JavaFX:
 
 ```bash
 sudo apt update
 sudo apt install -y openjdk-21-jdk openjfx
 ```
 
-Verifica el JDK:
+Se comprueba la versión de Java:
 
 ```bash
 /usr/lib/jvm/java-21-openjdk-amd64/bin/java -version
 ```
 
-Resultado observado:
+Resultado utilizado:
 
 ```text
 openjdk version "21.0.12.1" 2026-08-18
@@ -249,70 +612,65 @@ OpenJDK Runtime Environment (build 21.0.12.1+1-1-deb13u1-Debian)
 OpenJDK 64-Bit Server VM (build 21.0.12.1+1-1-deb13u1-Debian, mixed mode, sharing)
 ```
 
-Verifica que JavaFX se instaló:
+Se comprueba que JavaFX está instalado:
 
 ```bash
 ls -l /usr/share/openjfx/lib/javafx.base.jar
 ```
 
-En el sistema de esta práctica, el fichero apareció como enlace simbólico a la biblioteca JavaFX del sistema.
+---
 
-### 6.2. Descomprimir SQL Developer
+## 16. Instalación y configuración de Oracle SQL Developer
 
-Descarga el ZIP de SQL Developer para Linux desde Oracle y extráelo en un directorio de tu usuario. En esta práctica se utilizó:
+Se descarga el archivo ZIP de Oracle SQL Developer para Linux y se extrae en el directorio de aplicaciones:
 
-```text
-$HOME/Aplicaciones/sqldeveloper
+```bash
+mkdir -p ~/Aplicaciones
+cd ~/Descargas
+unzip sqldeveloper-*.zip -d ~/Aplicaciones
 ```
 
-La estructura importante fue:
+Se comprueba la ruta del script principal:
+
+```bash
+find ~/Aplicaciones -type f -name sqldeveloper.sh
+```
+
+La ruta utilizada es:
 
 ```text
 $HOME/Aplicaciones/sqldeveloper/sqldeveloper.sh
-$HOME/Aplicaciones/sqldeveloper/sqldeveloper/bin/jdk.conf
-$HOME/Aplicaciones/sqldeveloper/ide/bin/launcher.sh
 ```
 
-El arranque estándar de SQL Developer en Linux consiste en ejecutar `sqldeveloper.sh` después de descomprimir el kit.[^sqldevinstall]
+### 16.1. Configuración del JDK
 
----
-
-## 7. Configurar SQL Developer con JDK 21 y JavaFX
-
-### 7.1. Configurar la ruta del JDK
-
-Edita el fichero:
+Se edita el fichero de SQL Developer:
 
 ```bash
 nano "$HOME/Aplicaciones/sqldeveloper/sqldeveloper/bin/jdk.conf"
 ```
 
-Añade o deja activa la directiva:
+Se deja activa la siguiente línea:
 
 ```text
 SetJavaHome /usr/lib/jvm/java-21-openjdk-amd64
 ```
 
-Esta directiva obliga al lanzador a usar el JDK del sistema que has verificado.
+### 16.2. Configuración de JavaFX
 
-### 7.2. Solucionar el error `Module javafx.base not found`
-
-En este entorno, SQL Developer llegó a iniciar el JDK, pero falló con:
+Durante el inicio de SQL Developer apareció este error:
 
 ```text
-Error occurred during initialization of boot layer
 java.lang.module.FindException: Module javafx.base not found
 ```
 
-La causa era que JavaFX estaba instalado en el host, pero sus módulos no se encontraban en el *module path* con el que SQL Developer construía el proceso Java.
-
-La solución aplicada fue editar:
+Para solucionarlo se edita el launcher:
 
 ```bash
 nano "$HOME/Aplicaciones/sqldeveloper/ide/bin/launcher.sh"
 ```
 
-Busca esta zona dentro de la función de lanzamiento:
+Se localizan las líneas:
 
 ```bash
 CheckJDK
@@ -321,7 +679,7 @@ AppendVMSpecificOptions
 AppendCommandlineVMOptions
 ```
 
-Justo después de `AppendCommandlineVMOptions`, añade:
+Justo después de `AppendCommandlineVMOptions` se añaden:
 
 ```bash
 # JavaFX modules for Java 21
@@ -329,13 +687,9 @@ AddVMOption --module-path=/usr/share/openjfx/lib
 AddVMOption --add-modules=javafx.controls,javafx.fxml,javafx.web,javafx.swing
 ```
 
-Estas opciones incorporan al proceso Java los módulos JavaFX requeridos por el cliente.
+### 16.3. Lanzador local de SQL Developer
 
-> **Mantenimiento:** `launcher.sh` pertenece a la instalación de SQL Developer. Si actualizas o reinstalas SQL Developer, revisa que estas dos líneas siguen presentes, porque una actualización puede sobrescribir el fichero.
-
-### 7.3. Crear un lanzador cómodo en el PATH
-
-Crea el fichero `~/.local/bin/sqldeveloper`:
+Se crea el comando `sqldeveloper`:
 
 ```bash
 mkdir -p ~/.local/bin
@@ -352,82 +706,58 @@ EOF
 chmod +x ~/.local/bin/sqldeveloper
 ```
 
-Confirma que el directorio forma parte de tu `PATH`:
+Se comprueba la ruta:
 
 ```bash
-echo "$PATH"
 command -v sqldeveloper
 ```
 
-En la práctica, el comando resolvía a:
+La ruta obtenida es:
 
 ```text
 /home/sergio/.local/bin/sqldeveloper
 ```
 
-Arranca SQL Developer con:
+Se inicia SQL Developer:
 
 ```bash
 sqldeveloper
 ```
 
-En el primer inicio puede aparecer el diálogo para importar preferencias de otra instalación. Si no se muestra ninguna instalación anterior, pulsa **No**; se crearán preferencias nuevas y esto no impide conectarte a Oracle.
-
 ---
 
-## 8. Crear la conexión a la VM desde SQL Developer
+## 17. Conexión desde SQL Developer
 
-En SQL Developer:
+Se crea una conexión nueva con los siguientes datos:
 
-1. Ve al panel **Conexiones**.
-2. Pulsa el icono **+** para crear una conexión.
-3. Selecciona el tipo de conexión **Básico**.
-4. Introduce los valores siguientes.
+| Campo               | Valor                                                  |
+| ------------------- | ------------------------------------------------------ |
+| Nombre de conexión  | `Oracle-VM`                                            |
+| Usuario             | `SYSTEM`                                               |
+| Contraseña          | Contraseña definida durante la configuración de Oracle |
+| Tipo de conexión    | Básico                                                 |
+| Nombre del host     | `192.168.122.54`                                       |
+| Puerto              | `1521`                                                 |
+| Método de conexión  | **Nombre del Servicio**                                |
+| Nombre del servicio | `FREEPDB1`                                             |
+| Rol                 | Predeterminado                                         |
 
-| Campo | Valor de la práctica |
-|---|---|
-| Nombre de conexión | `Oracle-VM` o cualquier nombre descriptivo |
-| Usuario | `SYSTEM` para la comprobación inicial |
-| Contraseña | La definida durante la configuración de Oracle |
-| Tipo de conexión | `Básico` |
-| Nombre del host | `192.168.122.54` |
-| Puerto | `1521` |
-| Método de identificación | **Nombre del Servicio** |
-| Nombre del Servicio | `FREEPDB1` |
-| Rol | `Predeterminado` |
+Se pulsa **Probar** y, cuando el resultado es correcto, se pulsa **Conectar**.
 
-Pulsa **Probar**. Si aparece el estado correcto, pulsa **Conectar**.
-
-### No usar el SID `xe`
-
-En la primera prueba se indicó lo siguiente:
-
-```text
-SID: xe
-```
-
-El resultado fue:
+En una primera prueba se utilizó el SID `xe`, lo que produjo este error:
 
 ```text
 ORA-12505: No se puede conectar a la base de datos.
 El SID xe no está registrado con el listener.
 ```
 
-La corrección fue cambiar de **SID** a **Nombre del Servicio** e introducir:
-
-```text
-FREEPDB1
-```
-
-`FREEPDB1` es el servicio asociado a la PDB creada por defecto en Oracle Database Free.[^freepdb1]
+La solución fue seleccionar **Nombre del Servicio** y utilizar `FREEPDB1`.
 
 ---
 
-## 9. Validación final de la práctica
+## 18. Validación final
 
-Una conexión verde o el mensaje de prueba correcta confirman la conectividad, pero es recomendable ejecutar una consulta de validación que deje evidencia del resultado.
-
-En una **Hoja de Trabajo SQL** de la conexión creada, ejecuta:
+Una vez conectado desde SQL Developer se ejecuta:
 
 ```sql
 SELECT
@@ -438,280 +768,114 @@ SELECT
 FROM dual;
 ```
 
-Resultado obtenido durante la práctica:
+Resultado obtenido:
 
-| BASE_DATOS | SERVICIO | SERVIDOR | USUARIO |
-|---|---|---|---|
+| BASE_DATOS | SERVICIO   | SERVIDOR     | USUARIO  |
+| ---------- | ---------- | ------------ | -------- |
 | `FREEPDB1` | `freepdb1` | `oracle26ai` | `SYSTEM` |
 
-Este resultado confirma todos los puntos relevantes:
-
-- SQL Developer está ejecutándose en el host.
-- El host alcanza la máquina virtual en la IP configurada.
-- El listener Oracle acepta la conexión en el puerto 1521.
-- La sesión se ha abierto contra el servicio correcto: `FREEPDB1`.
-- La PDB está disponible y acepta consultas.
-- El usuario `SYSTEM` se ha autenticado correctamente.
-
-Guarda una captura de esta consulta y su resultado como evidencia de la práctica.
+La consulta confirma que SQL Developer se conecta correctamente desde el host a la base pluggable `FREEPDB1`, alojada en la máquina virtual `oracle26ai`.
 
 ---
 
-## 10. Errores comunes y soluciones
+## 19. Problemas frecuentes
 
-### 10.1. `Module javafx.base not found`
+### `ORA-12505`
 
-**Mensaje típico:**
+Este error aparece cuando se utiliza un SID incorrecto, como `xe`.
+
+Solución: seleccionar **Nombre del Servicio** y utilizar:
 
 ```text
-Error occurred during initialization of boot layer
-java.lang.module.FindException: Module javafx.base not found
+FREEPDB1
 ```
 
-**Causa:** SQL Developer utiliza un JDK sin JavaFX disponible en el *module path*, o se ha seleccionado un JDK que no integra JavaFX.
+### `ORA-12514`
 
-**Solución aplicada:**
+Este error aparece cuando el listener no conoce el servicio solicitado.
+
+Como SYSDBA se puede ejecutar:
+
+```sql
+ALTER PLUGGABLE DATABASE FREEPDB1 OPEN;
+ALTER PLUGGABLE DATABASE FREEPDB1 SAVE STATE;
+ALTER SYSTEM REGISTER;
+```
+
+Después se revisa:
+
+```bash
+lsnrctl services
+```
+
+### `TNS-12541: No listener`
+
+Este error indica que el listener no está disponible en el host o puerto utilizado.
+
+Se comprueba el servicio Oracle:
+
+```bash
+sudo systemctl status oracle26ai.service --no-pager
+```
+
+Se comprueba el listener con el entorno de Oracle:
+
+```bash
+sudo -u oracle env \
+  ORACLE_HOME=/opt/oracle/product/26ai/dbhomeFree \
+  ORACLE_SID=FREE \
+  PATH=/opt/oracle/product/26ai/dbhomeFree/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+  /opt/oracle/product/26ai/dbhomeFree/bin/lsnrctl status
+```
+
+### `Module javafx.base not found`
+
+Este error se produce cuando SQL Developer no encuentra los módulos JavaFX.
+
+Solución:
 
 ```bash
 sudo apt install -y openjfx
 ```
 
-Y en `ide/bin/launcher.sh`:
+Y añadir al launcher:
 
 ```bash
 AddVMOption --module-path=/usr/share/openjfx/lib
 AddVMOption --add-modules=javafx.controls,javafx.fxml,javafx.web,javafx.swing
 ```
 
-Además, comprueba `SetJavaHome` en `sqldeveloper/bin/jdk.conf`:
+### No se puede conectar al puerto 1521
 
-```text
-SetJavaHome /usr/lib/jvm/java-21-openjdk-amd64
-```
-
----
-
-### 10.2. `Unrecognized option: --module-path`
-
-**Mensaje típico:**
-
-```text
-Unrecognized option: --module-path
-Error: Could not create the Java Virtual Machine.
-```
-
-**Causa:** Las opciones se añadieron mediante `JAVA_TOOL_OPTIONS` o `_JAVA_OPTIONS`, pero SQL Developer terminó invocando otro Java que no entiende esa opción o procesó la variable antes de seleccionar el JDK adecuado.
-
-**Qué no conviene mantener:**
+Desde el host se realizan estas comprobaciones:
 
 ```bash
-export JAVA_TOOL_OPTIONS="--module-path ..."
-```
-
-Ni:
-
-```bash
-export _JAVA_OPTIONS="--module-path ..."
-```
-
-**Solución:** elimina esas variables del lanzador de usuario y añade los módulos con `AddVMOption` dentro de `launcher.sh`, tal como se indicó en la sección anterior.
-
----
-
-### 10.3. Avisos `AddWindowsVM11OrHigherOption: orden no encontrada`
-
-**Mensaje típico:**
-
-```text
-./jdk.conf: línea 74: AddWindowsVM11OrHigherOption: orden no encontrada
-./java11.conf: línea 8: AddWindowsVM11OrHigherOption: orden no encontrada
-```
-
-**Causa:** El lanzador de Linux está leyendo líneas de configuración previstas para Windows o directivas no reconocidas por esa versión concreta del script.
-
-**Impacto:** en esta práctica estos mensajes fueron advertencias; SQL Developer arrancó correctamente una vez configurado JavaFX.
-
-**Acción recomendada:** no tocar estas líneas si la aplicación arranca y funciona. Si una versión futura no arrancara, revisa las notas de versión de SQL Developer y la configuración del launcher antes de eliminar directivas.
-
----
-
-### 10.4. `ORA-12505`: SID no registrado
-
-**Mensaje típico:**
-
-```text
-ORA-12505: No se puede conectar a la base de datos.
-El SID xe no está registrado con el listener.
-```
-
-**Causa:** Se está solicitando un SID que el listener no conoce. En esta práctica se usó erróneamente `xe`, propio de entornos Oracle XE antiguos.
-
-**Solución en SQL Developer:**
-
-- Seleccionar **Nombre del Servicio**.
-- Introducir `FREEPDB1`.
-- Mantener host `192.168.122.54` y puerto `1521`.
-
-Si el error ocurre incluso con `FREEPDB1`, ejecuta en la VM:
-
-```bash
-lsnrctl status
-lsnrctl services
-```
-
-Y como `SYSDBA`:
-
-```sql
-SHOW PDBS;
-SELECT name, open_mode FROM v$pdbs;
-ALTER SYSTEM REGISTER;
-```
-
-`ALTER SYSTEM REGISTER` fuerza a la instancia a registrar sus servicios con el listener, cuando corresponde.
-
----
-
-### 10.5. `ORA-12514`: servicio no conocido por el listener
-
-**Causa posible:** La PDB no está abierta, el listener aún no conoce el servicio o se ha escrito un nombre de servicio incorrecto.
-
-**Comprobación:**
-
-```bash
-lsnrctl services
-```
-
-**Solución en SQL*Plus como SYSDBA:**
-
-```sql
-ALTER PLUGGABLE DATABASE FREEPDB1 OPEN;
-ALTER PLUGGABLE DATABASE FREEPDB1 SAVE STATE;
-ALTER SYSTEM REGISTER;
-```
-
-Después, vuelve a intentar la conexión con `FREEPDB1`.
-
----
-
-### 10.6. SQL Developer no llega a la VM
-
-**Síntoma:** tiempo de espera, `Network Adapter could not establish the connection`, `Connection refused` o fallo de prueba sin llegar a Oracle.
-
-**Comprobaciones, en orden:**
-
-```bash
-# En el host
 ping -c 3 192.168.122.54
 nc -vz 192.168.122.54 1521
 ```
 
+Dentro de la VM se revisa:
+
 ```bash
-# En la VM
-ip -br a
-lsnrctl status
+sudo systemctl status oracle26ai.service --no-pager
 ss -ltnp | grep 1521
 ```
 
-Si el puerto no está disponible desde el host:
+---
 
-- Comprueba el modo de red del hipervisor: NAT, bridge, red privada o reenvío de puertos.
-- Confirma la IP actual de la VM; puede cambiar si recibe DHCP.
-- Revisa el firewall de la VM.
-- Comprueba que el listener está iniciado.
+## 20. Conclusión
+
+Oracle AI Database 26ai Free se ha instalado y configurado en una máquina virtual Debian 13. La base dispone de la CDB `FREE`, la PDB `FREEPDB1` y un listener configurado en el puerto `1521`.
+
+Como el script de inicio instalado por Oracle no se pudo habilitar directamente con systemd en Debian, se creó la unidad `oracle26ai.service`. Esta unidad utiliza el script original de Oracle y permite que la base de datos se inicie automáticamente al arrancar la máquina virtual.
+
+Oracle SQL Developer se configuró en el equipo host usando OpenJDK 21 y JavaFX. La conexión se realizó con la dirección `192.168.122.54`, el puerto `1521` y el nombre de servicio `FREEPDB1`.
 
 ---
 
-### 10.7. La PDB aparece cerrada después de reiniciar
+## 21. Referencias
 
-Abre la PDB y guarda su estado:
-
-```sql
-ALTER PLUGGABLE DATABASE FREEPDB1 OPEN;
-ALTER PLUGGABLE DATABASE FREEPDB1 SAVE STATE;
-```
-
-Verifica después:
-
-```sql
-SHOW PDBS;
-```
-
----
-
-## 11. Buenas prácticas posteriores
-
-### Crear un usuario de trabajo propio
-
-`SYSTEM` se utilizó únicamente para comprobar que la instalación y la conectividad estaban bien. No es recomendable usarlo como cuenta de desarrollo diario.
-
-Conéctate como `SYSTEM` a `FREEPDB1` y crea un usuario específico para las prácticas:
-
-```sql
-CREATE USER practica_user IDENTIFIED BY "Cambia_Esta_Clave_2026";
-
-GRANT CREATE SESSION TO practica_user;
-GRANT CREATE TABLE, CREATE SEQUENCE, CREATE VIEW TO practica_user;
-ALTER USER practica_user QUOTA UNLIMITED ON USERS;
-```
-
-> Ajusta privilegios y cuota a la política del curso o del entorno. En producción aplica el principio de mínimo privilegio; no concedas más permisos de los necesarios.
-
-### Guardar los datos de conexión
-
-Registra para futuras prácticas:
-
-```text
-Host:           192.168.122.54
-Puerto:         1521
-Service name:   FREEPDB1
-Servidor:       oracle26ai
-Cliente:        SQL Developer 26.2.0
-```
-
-### Hacer copia de los cambios de SQL Developer
-
-Si has personalizado estos ficheros:
-
-```text
-$HOME/Aplicaciones/sqldeveloper/sqldeveloper/bin/jdk.conf
-$HOME/Aplicaciones/sqldeveloper/ide/bin/launcher.sh
-~/.local/bin/sqldeveloper
-```
-
-haz una copia antes de actualizar SQL Developer:
-
-```bash
-mkdir -p ~/backup-sqldeveloper-config
-cp "$HOME/Aplicaciones/sqldeveloper/sqldeveloper/bin/jdk.conf" ~/backup-sqldeveloper-config/
-cp "$HOME/Aplicaciones/sqldeveloper/ide/bin/launcher.sh" ~/backup-sqldeveloper-config/
-cp ~/.local/bin/sqldeveloper ~/backup-sqldeveloper-config/
-```
-
----
-
-## 12. Checklist final
-
-Marca estos puntos antes de dar la práctica por terminada:
-
-- [x] La VM está encendida y tiene IP accesible desde el host.
-- [x] La IP de la VM es `192.168.122.54`.
-- [x] El listener de Oracle escucha en el puerto TCP `1521`.
-- [x] La PDB `FREEPDB1` está abierta.
-- [x] SQL Developer se inicia en el host.
-- [x] SQL Developer utiliza un JDK 17 o superior; en esta práctica, OpenJDK 21.
-- [x] JavaFX está disponible para SQL Developer.
-- [x] La conexión utiliza `Nombre del Servicio`, no el SID `xe`.
-- [x] El nombre de servicio es `FREEPDB1`.
-- [x] La prueba de conexión es correcta.
-- [x] La consulta de validación devuelve `FREEPDB1`, `oracle26ai` y `SYSTEM`.
-
----
-
-## Fuentes
-
-[^oracle26ai]: Oracle, [Oracle AI Database Free Installation Guide, 26ai for Linux](https://docs.oracle.com/en/database/oracle/oracle-database/26/xeinl/index.html).
-[^oracleconnect]: Oracle, [Connecting to Oracle Database Free](https://docs.oracle.com/en/database/oracle/oracle-database/23/xeinl/connecting-oracle-database-free.html).
-[^sqldev]: Oracle, [Oracle SQL Developer](https://docs.oracle.com/en/database/oracle/sql-developer/).
-[^sqldevjdk]: Oracle, [SQL Developer System Recommendations](https://docs.oracle.com/en/database/oracle/sql-developer/26.2/rptig/sql-developer-system-recommendations.html).
-[^sqldevinstall]: Oracle, [Installing and Starting SQL Developer](https://docs.oracle.com/en/database/oracle/sql-developer/26.2/rptig/installing-and-starting-sql-developer.html).
-[^freepdb1]: Oracle, [Connecting to Oracle Database Free](https://docs.oracle.com/en/database/oracle/oracle-database/23/xeinw/connecting-oracle-database-xe.html).
+- Oracle, [Oracle AI Database Free Installation Guide, 26ai for Linux](https://docs.oracle.com/en/database/oracle/oracle-database/26/xeinl/index.html).
+- Oracle, [Starting and Stopping Oracle AI Database Free](https://docs.oracle.com/en/database/oracle/oracle-database/26/xeinl/starting-and-stopping-oracle-database.html).
+- Oracle, [Connecting to Oracle Database Free](https://docs.oracle.com/en/database/oracle/oracle-database/23/xeinl/connecting-oracle-database-free.html).
+- Oracle, [Installing and Starting SQL Developer](https://docs.oracle.com/en/database/oracle/sql-developer/26.2/rptig/installing-and-starting-sql-developer.html).
