@@ -22,13 +22,13 @@ Primero actualicé los repositorios y paquetes de mi servidor Debian:
 
 
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-04-02-image.png)
+![](imagenes/2026-10-08-13-04-02-image.png)
 
 Consulté la dirección IP de mi servidor, ya que la necesitaría más adelante para configurar el acceso desde el equipo cliente:
 
 `hostname -I`
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-04-59-image.png)
+![](imagenes/2026-10-08-13-04-59-image.png)
 
 ## 2. Instalación de MariaDB
 
@@ -38,19 +38,19 @@ Instalé el servidor MariaDB con el siguiente comando:
 
 `sudo apt install mariadb-server -y`
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-05-34-image.png)
+![](imagenes/2026-10-08-13-05-34-image.png)
 
 Una vez instalado, comprobé que el servicio estaba funcionando correctamente:
 
 `sudo systemctl status mariadb`
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-06-10-image.png)
+![](imagenes/2026-10-08-13-06-10-image.png)
 
 También activé el servicio para que MariaDB se inicie automáticamente cada vez que arranque el servidor:
 
 `sudo systemctl enable --now mariadb`
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-07-14-image.png)
+![](imagenes/2026-10-08-13-07-14-image.png)
 
 ## Configuración segura de MariaDB
 
@@ -82,31 +82,31 @@ Dentro de la consola de MariaDB creé una base de datos llamada `lampdb`:
 
 `CREATE DATABASE lampdb;`
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-10-18-image.png)
+![](imagenes/2026-10-08-13-10-18-image.png)
 
 Creé un usuario llamado `lampuser`, con acceso desde el propio servidor:
 
 `CREATE USER 'lampuser'@'localhost' IDENTIFIED BY 'ContraseñaSegura123!';`
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-10-48-image.png)
+![](imagenes/2026-10-08-13-10-48-image.png)
 
 Asigné todos los permisos sobre la base de datos `lampdb` a dicho usuario:
 
 `GRANT ALL PRIVILEGES ON lampdb.* TO 'lampuser'@'localhost';`
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-11-06-image.png)
+![](imagenes/2026-10-08-13-11-06-image.png)
 
 Actualicé los privilegios:
 
 `FLUSH PRIVILEGES;`
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-11-21-image.png)
+![](imagenes/2026-10-08-13-11-21-image.png)
 
 Y para salir usamos:
 
 `EXIT;`
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-12-34-image.png)
+![](imagenes/2026-10-08-13-12-34-image.png)
 
 ---
 
@@ -118,19 +118,19 @@ Ejecuté:
 
 `sudo apt install apache2 -y`
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-13-01-image.png)
+![](imagenes/2026-10-08-13-13-01-image.png)
 
 Después comprobé el estado del servicio:
 
 `sudo systemctl status apache2`
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-13-26-image.png)
+![](imagenes/2026-10-08-13-13-26-image.png)
 
 También configuré Apache para que se inicie automáticamente cuando arranque el sistema:
 
 `sudo systemctl enable apache2`
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-14-10-image.png)
+![](imagenes/2026-10-08-13-14-10-image.png)
 
 Reinicié Apache:
 
@@ -140,7 +140,7 @@ Por último, comprobé desde el propio servidor que Apache respondía correctame
 
 `curl -I http://localhost`
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-15-09-image.png)
+![](imagenes/2026-10-08-13-15-09-image.png)
 
 ---
 
@@ -152,31 +152,31 @@ Ejecuté el siguiente comando:
 
 `sudo apt install apache2 libapache2-mod-php php php-mysql -y`
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-15-36-image.png)
+![](imagenes/2026-10-08-13-15-36-image.png)
 
 También instalé algunos módulos adicionales de PHP que pueden ser necesarios en aplicaciones web:
 
 `sudo apt install php-cli php-curl php-mbstring php-xml php-zip -y`
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-16-45-image.png)
+![](imagenes/2026-10-08-13-16-45-image.png)
 
 Después comprobé la versión instalada de PHP:
 
 `php -v`
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-17-22-image.png)
+![](imagenes/2026-10-08-13-17-22-image.png)
 
 También revisé los módulos cargados:
 
 `php -m`
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-17-40-image.png)
+![](imagenes/2026-10-08-13-17-40-image.png)
 
 Para verificar específicamente que PHP podía trabajar con MariaDB/MySQL, ejecuté:
 
 `php -m | grep -i mysql`
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-18-01-image.png)
+![](imagenes/2026-10-08-13-18-01-image.png)
 
 Finalmente reinicié Apache para que cargara correctamente el módulo de PHP:
 
@@ -198,19 +198,19 @@ Dentro escribí el siguiente código:
 
 `<?php phpinfo(); ?>`
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-22-51-image.png)
+![](imagenes/2026-10-08-13-22-51-image.png)
 
 Guardé el archivo y le asigné como propietario el usuario y grupo utilizados por Apache:
 
 `sudo chown www-data:www-data /var/www/html/info.php`
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-23-13-image.png)
+![](imagenes/2026-10-08-13-23-13-image.png)
 
 Después abrí la página desde el navegador utilizando la IP del servidor:
 
 `http://192.168.122.198/info.php`
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-24-24-image.png)
+![](imagenes/2026-10-08-13-24-24-image.png)
 
 La página mostró la información de PHP, incluyendo la versión instalada, el servidor Apache, los módulos cargados y los datos de configuración.
 
@@ -222,19 +222,19 @@ Para mostrar una página propia desde mi servidor, creé un archivo llamado `ind
 
 Introduje el siguiente contenido:
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-26-55-image.png)
+![](imagenes/2026-10-08-13-26-55-image.png)
 
 Guardé el archivo y le asigné los permisos correctos:
 
 `sudo chown www-data:www-data /var/www/html/index.php`
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-27-29-image.png)
+![](imagenes/2026-10-08-13-27-29-image.png)
 
 Por último, comprobé el resultado desde el propio servidor:
 
 `curl http://localhost/index.php`
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-27-57-image.png)
+![](imagenes/2026-10-08-13-27-57-image.png)
 
 ---
 
@@ -258,7 +258,7 @@ El contenido relevante del fichero quedó así:
 
 `127.0.0.1       localhost 192.168.121.10  sergiomesamejias.com www.sergiomesamejias.com`
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-30-14-image.png)
+![](imagenes/2026-10-08-13-30-14-image.png)
 
 De esta forma, mi ordenador asocia el nombre `sergiomesamejias.com` con la dirección IP privada del servidor, sin necesidad de tener un servidor DNS propio.
 
@@ -266,19 +266,19 @@ Comprobé que el nombre resolvía correctamente:
 
 `ping -c 4 sergiomesamejias.com`
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-30-46-image.png)
+![](imagenes/2026-10-08-13-30-46-image.png)
 
 Finalmente accedí desde el navegador a:
 
 `http://sergiomesamejias.com/`
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-31-52-image.png)
+![](imagenes/2026-10-08-13-31-52-image.png)
 
 También pude acceder a la página de PHP mediante:
 
 `http://sergiomesamejias.com/info.php`
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-32-17-image.png)
+![](imagenes/2026-10-08-13-32-17-image.png)
 
 La resolución estática mediante `/etc/hosts` permite asociar manualmente una IP con un nombre de dominio cuando no se utiliza un servidor DNS.[Parte-1-Introduccion-a-PHP.pdf](https://ppl-ai-file-upload.s3.amazonaws.com/web/direct-files/attachments/158403573/f5ea9820-a394-4b20-ba46-1e007343e558/Parte-1-Introduccion-a-PHP.pdf)
 
@@ -290,7 +290,7 @@ Para comprobar que PHP podía conectarse correctamente a MariaDB, creé un archi
 
 Introduje el siguiente código, utilizando el usuario y la base de datos creados anteriormente:
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-41-50-image.png)
+![](imagenes/2026-10-08-13-41-50-image.png)
 
 Después establecí el propietario adecuado para Apache:
 
@@ -300,7 +300,7 @@ Abrí la página desde el navegador:
 
 `http://sergiomesamejias.com/bd.php`
 
-![](/home/sergio/.config/marktext/images/2026-10-08-13-42-09-image.png)
+![](imagenes/2026-10-08-13-42-09-image.png)
 
 ## 9. Consulta de logs de Apache
 
