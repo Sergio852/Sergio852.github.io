@@ -1,6 +1,6 @@
 ---
 title: "Instalación y configuración de Apache2 con PHP-FPM"
-subject: "Aplicaciones Web"
+subject: "Implantación de Aplicaciones Web"
 description: "Instalación y configuración de Apache2 con PHP-FPM en Debian, incluyendo virtual hosts y pruebas de funcionamiento."
 date: 2026-10-15
 pdf: "appweb/apache2-php-fpm.pdf"
