@@ -14,17 +14,17 @@ tags:
 
 ## 1. Qué he realizado
 
-He preparado una aplicación web en Python con Flask que se conecta a mi servidor MariaDB. Desde la web puedo iniciar sesión con una cuenta de la base de datos, ver sus tablas permitidas y consultar registros. También he demostrado una inyección SQL en un buscador y la he corregido.
+He realizado una aplicación web con Python y Flask para conectarme desde el contenedor `app-web` al servidor MariaDB de otra máquina. La parte visual HTML/CSS y algunas funciones auxiliares las generé con ayuda de una IA; yo integré y probé el proyecto, configuré la conexión a la base de datos, comprobé los permisos y realicé la demostración de inyección SQL y su corrección.
 
-He utilizado MariaDB. La aplicación también puede adaptarse a MySQL con PyMySQL, manteniendo el mismo planteamiento; tendría que revisar la configuración y las opciones propias del servidor. No son el mismo producto. En esta memoria documento MariaDB, que es el que he usado.
+He utilizado MariaDB. La rúbrica nombra MySQL; no presento MariaDB como si fuera MySQL. La aplicación usa PyMySQL y la conexión podría adaptarse a un servidor MySQL compatible, pero tendría que probarse con ese gestor y esta práctica se ha comprobado contra MariaDB. La compatibilidad entre ambos no significa que sean el mismo producto. [web:993]
 
 ## 2. Mi entorno
 
-| Equipo | Uso | Dirección |
-|---|---|---|
-| Sergio-PC | Anfitrión de LXC y Virt-Manager | Accedo a la web desde este equipo |
-| app-web | Contenedor Debian 13 con Flask | 10.0.3.46 |
-| sgbd-vm | Máquina virtual de Virt-Manager con MariaDB | 192.168.122.22 |
+| Equipo    | Uso                                         | Dirección                         |
+| --------- | ------------------------------------------- | --------------------------------- |
+| Sergio-PC | Anfitrión de LXC y Virt-Manager             | Accedo a la web desde este equipo |
+| app-web   | Contenedor Debian 13 con Flask              | 10.0.3.46                         |
+| sgbd-vm   | Máquina virtual de Virt-Manager con MariaDB | 192.168.122.22                    |
 
 Dentro de la máquina virtual, el nombre del sistema es `bd-sergio`. El contenedor está conectado a `lxcbr0` (10.0.3.1) y la máquina virtual a la red de `virbr0` (192.168.122.1).
 
@@ -217,10 +217,10 @@ SHOW GRANTS FOR 'lectura'@'%';
 SHOW GRANTS FOR 'admin'@'%';
 ```
 
-| Usuario | Tablas que puede consultar |
-|---|---|
-| lectura | clientes y notas |
-| admin | clientes, notas, pedidos y notas_privadas |
+| Usuario | Tablas que puede consultar                |
+| ------- | ----------------------------------------- |
+| lectura | clientes y notas                          |
+| admin   | clientes, notas, pedidos y notas_privadas |
 
 Aunque se llama admin, esta cuenta tiene permisos SELECT en esta base: el nombre no la convierte en administrador global. El host `%` permite conexiones desde distintos orígenes si la red las permite; lo he usado dentro del laboratorio.
 
@@ -290,22 +290,9 @@ MYSQL_DATABASE = "practica_web"
 
 Aquí guardo dónde está la base. El usuario y la contraseña se solicitan en la pantalla de acceso.
 
-### 6.2 Clave privada de la aplicación
+### 6.2 Clave secreta de Flask
 
-No incluyo mi clave secreta en la documentación. Para que el proyecto funcione sin tener que escribirla en el código, la genero una vez en un archivo local:
-
-```bash
-python3 - <<'PY'
-from pathlib import Path
-import secrets
-clave = Path('.secret_key')
-if not clave.exists():
-    clave.write_text(secrets.token_hex(32))
-clave.chmod(0o600)
-PY
-```
-
-Este pequeño ajuste evita publicar la clave que tenía escrita en `app.py`. La lógica de la aplicación es la misma.
+Flask utiliza una clave secreta para proteger las sesiones. En mi archivo real esa clave está escrita en `app.py`; no incluyo su valor en esta memoria por seguridad. No cambié la configuración de claves para preparar el documento.
 
 ### 6.3 app.py
 
@@ -319,24 +306,29 @@ Este es el contenido completo con la búsqueda corregida:
 from flask import Flask, request, session, redirect, url_for, render_template, flash
 import pymysql
 import config
-from pathlib import Path
 from flask_session import Session
 from cachelib.file import FileSystemCache
 
 app = Flask(__name__)
-app.secret_key = Path("/root/app-web/.secret_key").read_text().strip()
+app.secret_key = "[CLAVE OCULTA]"
+
 app.config["SESSION_TYPE"] = "cachelib"
 app.config["SESSION_CACHELIB"] = FileSystemCache(
-    cache_dir="/root/app-web/.sessions", threshold=100
+    cache_dir="/root/app-web/.sessions",
+    threshold=100
 )
 Session(app)
 
 
 def conectar(usuario, password):
     return pymysql.connect(
-        host=config.MYSQL_HOST, port=config.MYSQL_PORT,
-        user=usuario, password=password, database=config.MYSQL_DATABASE,
-        cursorclass=pymysql.cursors.DictCursor, connect_timeout=5
+        host=config.MYSQL_HOST,
+        port=config.MYSQL_PORT,
+        user=usuario,
+        password=password,
+        database=config.MYSQL_DATABASE,
+        cursorclass=pymysql.cursors.DictCursor,
+        connect_timeout=5
     )
 
 
@@ -345,15 +337,19 @@ def login():
     if request.method == "POST":
         usuario = request.form.get("usuario", "").strip()
         password = request.form.get("password", "")
+
         try:
             conexion = conectar(usuario, password)
             conexion.close()
+
             session.clear()
             session["usuario"] = usuario
             session["password"] = password
             return redirect(url_for("tablas"))
+
         except pymysql.MySQLError:
-            flash("Usuario o contraseña incorrectos.")
+            flash("Usuario o contrasena incorrectos.")
+
     return render_template("login.html")
 
 
@@ -361,41 +357,57 @@ def login():
 def tablas():
     if "usuario" not in session:
         return redirect(url_for("login"))
+
     conexion = conectar(session["usuario"], session["password"])
+
     try:
         with conexion.cursor() as cursor:
             cursor.execute("SHOW TABLES")
-            nombres = [next(iter(fila.values())) for fila in cursor.fetchall()]
+            nombres = cursor.fetchall()
+            tablas = [next(iter(fila.values())) for fila in nombres]
     finally:
         conexion.close()
-    return render_template("tablas.html", tablas=nombres)
+
+    return render_template("tablas.html", tablas=tablas)
 
 
 @app.route("/tabla/<nombre>")
 def ver_tabla(nombre):
     if "usuario" not in session:
         return redirect(url_for("login"))
+
     conexion = conectar(session["usuario"], session["password"])
+
     try:
         with conexion.cursor() as cursor:
             cursor.execute("SHOW TABLES")
-            permitidas = [next(iter(fila.values())) for fila in cursor.fetchall()]
+            permitidas = [
+                next(iter(fila.values()))
+                for fila in cursor.fetchall()
+            ]
+
             if nombre not in permitidas:
                 flash("Esa tabla no está disponible.")
                 return redirect(url_for("tablas"))
+
             if nombre == "notas" and session["usuario"] != "admin":
                 cursor.execute(
-                    "SELECT id, titulo, contenido FROM notas "
-                    "WHERE interna = 0 LIMIT 100"
+                    "SELECT id, titulo, contenido "
+                    "FROM notas WHERE interna = 0 LIMIT 100"
                 )
             else:
                 cursor.execute(f"SELECT * FROM `{nombre}` LIMIT 100")
+
             registros = cursor.fetchall()
             columnas = [columna[0] for columna in cursor.description]
     finally:
         conexion.close()
+
     return render_template(
-        "tabla.html", nombre=nombre, columnas=columnas, registros=registros
+        "tabla.html",
+        nombre=nombre,
+        columnas=columnas,
+        registros=registros
     )
 
 
@@ -403,19 +415,25 @@ def ver_tabla(nombre):
 def buscar_notas():
     if "usuario" not in session:
         return redirect(url_for("login"))
+
     resultados = []
     termino = ""
+
     if request.method == "POST":
         termino = request.form.get("termino", "")
         conexion = conectar(session["usuario"], session["password"])
+
         try:
             with conexion.cursor() as cursor:
+                # Consulta parametrizada: la entrada se trata como dato.
                 consulta = (
                     "SELECT id, titulo, contenido FROM notas "
                     "WHERE titulo LIKE %s"
                 )
+
                 if session["usuario"] != "admin":
                     consulta += " AND interna = 0"
+
                 consulta += " LIMIT 100"
                 cursor.execute(consulta, (f"%{termino}%",))
                 resultados = cursor.fetchall()
@@ -423,8 +441,11 @@ def buscar_notas():
             flash("No se pudo realizar la búsqueda.")
         finally:
             conexion.close()
+
     return render_template(
-        "buscar_notas.html", termino=termino, resultados=resultados,
+        "buscar_notas.html",
+        termino=termino,
+        resultados=resultados,
         buscado=request.method == "POST"
     )
 
@@ -441,14 +462,14 @@ if __name__ == "__main__":
 
 ### Resumen de las funciones
 
-| Función | Qué hace |
-|---|---|
-| conectar | Abre la conexión con el servidor remoto usando las credenciales recibidas. |
-| login | Prueba las credenciales, inicia la sesión y lleva a las tablas. |
-| tablas | Obtiene las tablas visibles para esa cuenta con SHOW TABLES. |
-| ver_tabla | Comprueba la tabla solicitada y muestra sus registros. |
-| buscar_notas | Busca por título y aplica el filtro de notas internas. |
-| logout | Borra la sesión y vuelve al acceso. |
+| Función      | Qué hace                                                                   |
+| ------------ | -------------------------------------------------------------------------- |
+| conectar     | Abre la conexión con el servidor remoto usando las credenciales recibidas. |
+| login        | Prueba las credenciales, inicia la sesión y lleva a las tablas.            |
+| tablas       | Obtiene las tablas visibles para esa cuenta con SHOW TABLES.               |
+| ver_tabla    | Comprueba la tabla solicitada y muestra sus registros.                     |
+| buscar_notas | Busca por título y aplica el filtro de notas internas.                     |
+| logout       | Borra la sesión y vuelve al acceso.                                        |
 
 Uso `DictCursor` para obtener filas con nombres de columnas. `render_template` envía los datos a las páginas HTML. Las sesiones se guardan en el servidor mediante Flask-Session y CacheLib.
 
@@ -638,184 +659,119 @@ Cierro sesión y entro con `admin`. Aparecen las cuatro tablas. En `notas` tambi
 
 La diferencia en las tablas disponibles depende de los permisos de MariaDB; la diferencia entre filas compartidas e internas de `notas` depende del filtro de la aplicación.
 
-## 8. Preparar la versión vulnerable
+## 8. SQL Injection: prueba y corrección
 
-La versión anterior de `app.py` usa parámetros y está corregida. Primero guardo esa copia:
+La inyección SQL ocurre cuando la aplicación mezcla texto recibido del usuario con la consulta SQL, de modo que parte de esa entrada puede interpretarse como SQL. En mi aplicación la prueba se hace sobre el buscador de notas y datos ficticios, únicamente dentro del laboratorio.
 
-```bash
-cp app.py app_seguro.py
-```
+### 8.1 Versión vulnerable
 
-Para reproducir el fallo del laboratorio, edito `app.py`:
-
-```bash
-nano app.py
-```
-
-Dentro de `buscar_notas`, sustituyo solo el bloque que construye y ejecuta la consulta por este, conservando la indentación:
+En la versión vulnerable, el bloque de consulta de `buscar_notas()` concatenaba el término directamente:
 
 ```python
-                consulta = (
-                    "SELECT id, titulo, contenido FROM notas "
-                    "WHERE titulo LIKE '%" + termino + "%'")
+consulta = (
+    "SELECT id, titulo, contenido FROM notas "
+    "WHERE titulo LIKE '%" + termino + "%'
+)
 
-                if session["usuario"] != "admin":
-                    consulta += " AND interna = 0"
+if session["usuario"] != "admin":
+    consulta += " AND interna = 0"
 
-                cursor.execute(consulta + " LIMIT 100")
+cursor.execute(consulta + " LIMIT 100")
 ```
 
-Dejo `resultados = cursor.fetchall()` justo después, como estaba. Guardo la versión vulnerable:
+Con `lectura`, una búsqueda normal de `Presupuesto` no debía mostrar la nota interna. En el laboratorio utilicé la entrada de prueba que aparece en el vídeo para comprobar que la consulta vulnerable permitía saltarse el filtro de la aplicación.
 
-```bash
-python3 -m py_compile app.py
-cp app.py app_vulnerable.py
-```
+> ![](./imagenes/memoria-aplicacion-web-abd/2026-10-21-14-37-37-image.png)
+> 
+> ![](./imagenes/memoria-aplicacion-web-abd/2026-10-21-16-21-52-image.png)
+> 
+> La consulta vulnerable permite que la entrada altere la condición y muestre una fila interna a un usuario que normalmente no la ve.
 
-## 9. Demostración de SQL Injection
+### 8.2 Cambio realizado
 
-Realizo esta prueba solo en mi aplicación del laboratorio y con los datos ficticios de la práctica.
-
-Arranco la versión vulnerable y entro como `lectura`:
-
-```bash
-python3 app.py
-```
-
-En Buscar notas hago estas pruebas:
-
-| Búsqueda | Resultado vulnerable |
-|---|---|
-| Horario | Devuelve la nota Horario. |
-| Presupuesto | No devuelve coincidencias. |
-| NoExiste' OR 1=1 # | Devuelve también la nota interna. |
-
-La entrada de demostración es:
-
-```text
-NoExiste' OR 1=1 #
-```
-
-La consulta queda así:
-
-```sql
-SELECT id, titulo, contenido FROM notas
-WHERE titulo LIKE '%NoExiste' OR 1=1 #%' AND interna = 0 LIMIT 100
-```
-
-La condición `OR 1=1` es verdadera y `#` comenta el final de esa línea. Así deja de aplicarse `AND interna = 0`.
-
-El error está en concatenar el término del formulario dentro del SQL. No he convertido lectura en administrador ni cambiado sus permisos: he evitado el filtro de la aplicación.
-
-## 10. Corrección y comprobación
-
-La solución consiste en separar la consulta de los valores. El bloque corregido de `buscar_notas` es:
+Para corregirlo, cambié la consulta a un parámetro `%s` y paso el texto como argumento separado a `cursor.execute()`:
 
 ```python
-                consulta = (
-                    "SELECT id, titulo, contenido FROM notas "
-                    "WHERE titulo LIKE %s"
-                )
+consulta = (
+    "SELECT id, titulo, contenido FROM notas "
+    "WHERE titulo LIKE %s"
+)
 
-                if session["usuario"] != "admin":
-                    consulta += " AND interna = 0"
+if session["usuario"] != "admin":
+    consulta += " AND interna = 0"
 
-                consulta += " LIMIT 100"
-                cursor.execute(consulta, (f"%{termino}%",))
+consulta += " LIMIT 100"
+cursor.execute(consulta, (f"%{termino}%",))
 ```
 
-El marcador `%s` no lleva comillas. El valor se pasa como segundo argumento de `execute`, dentro de una tupla. Los porcentajes del valor permiten buscar coincidencias parciales. El texto introducido ya no puede convertirse en instrucciones SQL.
+El valor de búsqueda se entrega por separado, así que no se añade como sintaxis SQL. PyMySQL admite marcadores `%s` y valores pasados como parámetros. [web:695]
 
-Como ya tengo esa versión guardada, detengo Flask con `Ctrl+C` y la activo:
+![](./imagenes/memoria-aplicacion-web-abd/2026-10-21-16-24-08-image.png)
 
-```bash
-cp app_seguro.py app.py
-python3 -m py_compile app.py && python3 app.py
-```
+### 8.3 Comprobación de la corrección
 
-Repito las pruebas como lectura:
+Después de cambiar el código repetí la misma búsqueda como `lectura`. La búsqueda normal de `Horario` seguía funcionando, pero la entrada usada en la demostración ya no mostraba la nota interna. También comprobé que `admin` podía seguir consultando esa nota.
 
-| Búsqueda | Resultado corregido |
-|---|---|
-| Horario | Devuelve la nota Horario. |
-| Presupuesto | No devuelve coincidencias. |
-| NoExiste' OR 1=1 # | No devuelve coincidencias ni revela notas internas. |
+![](./imagenes/memoria-aplicacion-web-abd/2026-10-21-16-25-46-image.png)
 
-Después compruebo con admin que buscar Presupuesto sigue funcionando. Así verifico que la corrección no rompe el acceso permitido.
+En el vídeo se ve el proceso seguido: primero la versión vulnerable, luego el cambio del codigo y finalmente la misma comprobación con la consulta corregida. No describo variantes de inyección que no haya probado, la demostracion documentada aquí es la que realicé.
 
-## 11. Cambiar de versión durante el vídeo
+## 9. Capturas de la aplicación y dónde colocarlas
 
-Siempre detengo Flask con `Ctrl+C` antes de cambiar el archivo.
+Aquí mostraré diferentes capturas para explicar los permisos de usuario que he aplicado en mi aplicacion web.
 
-Para mostrar el fallo:
+### Entorno separado
 
-```bash
-cp app_vulnerable.py app.py
-python3 app.py
-```
+**Informacion sobre mi contenedor Debian 13 donde tengo alojada la aplicacion web y la maquina virtual donde tengo mis bases de datos**
 
-Para mostrar la solución:
+> ![](./imagenes/memoria-aplicacion-web-abd/2026-10-21-16-29-33-image.png)
+> 
+> ![](./imagenes/memoria-aplicacion-web-abd/2026-10-21-16-30-13-image.png)
+> 
+> La aplicación Flask está en el contenedor `app-web` y MariaDB en una máquina virtual distinta, `bd-sergio`.
 
-```bash
-cp app_seguro.py app.py
-python3 app.py
-```
+### Pantalla de autenticación
 
-`cp` copia del primer nombre al segundo. No ejecuto `cp app.py app_seguro.py` mientras app.py sea vulnerable, porque sobrescribiría la copia corregida.
 
-Al terminar dejo activa la versión segura.
 
-## 12. Volver a entrar y errores que resolví
+> ![](./imagenes/memoria-aplicacion-web-abd/2026-10-21-16-32-47-image.png)
+> 
+> La aplicación solicita las credenciales de la cuenta de MariaDB antes de mostrar la información.
 
-### Si salgo del contenedor
+### Acceso como lectura
 
-Desde mi PC:
 
-```bash
-sudo lxc-attach -n app-web
-```
 
-Dentro:
+> ![](./imagenes/memoria-aplicacion-web-abd/2026-10-21-16-33-40-image.png)
+> 
+> ![](./imagenes/memoria-aplicacion-web-abd/2026-10-21-16-34-05-image.png)
+> 
+> ![](./imagenes/memoria-aplicacion-web-abd/2026-10-21-16-34-15-image.png)
+> 
+> El usuario lectura tiene SELECT sobre `clientes` y `notas`; la aplicación oculta las notas con `interna = 1`.
 
-```bash
-cd /root/app-web
-source .venv/bin/activate
-python3 app.py
-```
+### Acceso como admin
 
-### Error de tabulaciones
+![](./imagenes/memoria-aplicacion-web-abd/2026-10-21-16-34-33-image.png)
 
-Al pegar código apareció `TabError: inconsistent use of tabs and spaces in indentation`. Lo resolví reescribiendo el bloque con espacios y comprobando antes de arrancar:
+![](./imagenes/memoria-aplicacion-web-abd/2026-10-21-16-34-49-image.png)
 
-```bash
-python3 -m py_compile app.py
-```
+![](./imagenes/memoria-aplicacion-web-abd/2026-10-21-16-35-25-image.png)
 
-### Una búsqueda no encuentra resultados
+![](./imagenes/memoria-aplicacion-web-abd/2026-10-21-16-35-32-image.png)
 
-El buscador busca títulos de notas, no nombres de clientes. Buscar Sergio no encuentra una nota solo porque exista un cliente con ese nombre.
+![](./imagenes/memoria-aplicacion-web-abd/2026-10-21-16-35-43-image.png)
 
-## 13. Archivos que conservo para la entrega
+> Admin tiene SELECT en toda la base `practica_web`, por eso puede consultar las cuatro tablas.
 
-```text
-app-web/
-├── app.py
-├── app_seguro.py
-├── app_vulnerable.py
-├── config.py
-├── requirements.txt
-└── templates/
-    ├── base.html
-    ├── login.html
-    ├── tablas.html
-    ├── tabla.html
-    └── buscar_notas.html
-```
+### Prueba de conexión y permisos
 
-Los archivos `buscar.html` y `catalogo.html` que quedaron de las primeras pruebas no son necesarios en esta versión: sus rutas y enlaces ya no se utilizan.
 
-No entrego la clave `.secret_key`, los archivos de sesión `.sessions` ni el entorno `.venv`. La clave se vuelve a generar al preparar otra instalación siguiendo el paso 6.2.
 
-## 14. Resultado
+> ![](./imagenes/memoria-aplicacion-web-abd/2026-10-21-16-38-31-image.png)
+> 
+> Comprobé que el contenedor llega al servidor remoto y que las cuentas tienen los permisos usados por la aplicación.
 
-He separado el cliente web y el servidor MariaDB, he comprobado la autenticación y el acceso a tablas según los permisos, y he mostrado registros desde la aplicación. También he reproducido una inyección SQL en el buscador y comprobado que una consulta parametrizada evita ese ataque.
+## 10. Resultado
+
+He documentado el despliegue de la aplicación en un contenedor separado del servidor MariaDB, el acceso con las cuentas de prueba, las capturas que evidencian los permisos y el cambio del buscador vulnerable a una consulta parametrizada. La estructura HTML/CSS se generó con ayuda de IA; he centrado la explicación en la conexión, los permisos y las pruebas de seguridad que realicé.
