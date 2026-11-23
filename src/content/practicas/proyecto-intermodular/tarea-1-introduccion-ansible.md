@@ -270,7 +270,7 @@ ansible all -m copy -a "src=~/Documentos/prueba.txt dest=/tmp/prueba.txt mode=06
 
 Veremos `changed=true` en amarillo porque el fichero no existía y se ha creado.
 
-<img src="./imagenes/tarea-1-introduccion-ansible/2026-09-21-21-56-52-image.png" title="" alt="" width="698">
+![](./imagenes/tarea-1-introduccion-ansible/2026-09-21-21-56-52-image.png)
 
 ![](./imagenes/tarea-1-introduccion-ansible/2026-09-21-22-04-46-image.png)
 

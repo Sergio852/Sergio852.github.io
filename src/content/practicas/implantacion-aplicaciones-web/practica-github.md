@@ -57,7 +57,7 @@ cat ~/.ssh/id_rsa.pub
 He copiado la línea completa mostrada en pantalla, que empieza por `ssh-rsa` y termina normalmente con un comentario, como mi correo electrónico.
 
 >  Salida del comando `cat ~/.ssh/id_rsa.pub`.  
-> <img title="" src="./imagenes/2026-09-24-12-06-12-image.png" alt="" width="616">
+> ![](./imagenes/2026-09-24-12-06-12-image.png)
 
 
 
@@ -270,7 +270,7 @@ git log --oneline
 ```
 
 > Creación del commit y visualización del historial.  
-> <img src="./imagenes/2026-09-24-12-30-36-image.png" title="" alt="" width="644">
+> ![](./imagenes/2026-09-24-12-30-36-image.png)
 
 ---
 
@@ -465,6 +465,6 @@ Finalmente, hemos abierto el repositorio en GitHub para comprobar que el archivo
 > README renderizado correctamente en GitHub.  
 > ![](./imagenes/2026-09-24-12-52-32-image.png)
 
-<img title="" src="./imagenes/2026-09-24-12-53-08-image.png" alt="" data-align="inline">
+![](./imagenes/2026-09-24-12-53-08-image.png)
 
 ![](./imagenes/2026-09-24-12-53-44-image.png)

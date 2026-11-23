@@ -33,29 +33,29 @@ El certificado lo saqué con la app Certificado digital FNMT del móvil, leyendo
 
 Para instalarlo en Firefox voy a Ajustes &gt; Privacidad y seguridad &gt; Ver certificados &gt; pestaña Sus certificados &gt; Importar. Elijo el .p12 de Descargas y pongo la contraseña con la que está protegido:
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/f1_elegir_p12.png" width="92%"></p>
+![](./imagenes/criptografia-certificados-https/f1_elegir_p12.png)
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/f1_pass_p12.png" width="67%"></p>
+![](./imagenes/criptografia-certificados-https/f1_pass_p12.png)
 
 > Muestra una captura de pantalla del gestor de certificados donde se vea instalado tu certificado correctamente.
 
 Ya me sale mi certificado en Sus certificados, dentro de FNMT-RCM:
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/f1_instalado.png" width="78%"></p>
+![](./imagenes/criptografia-certificados-https/f1_instalado.png)
 
 Y en el detalle se ve que está a mi nombre, que lo emite AC FNMT Usuarios y que vale hasta el 31/12/2028 (he tapado el DNI):
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/f1_detalle_cert.png" width="84%"></p>
+![](./imagenes/criptografia-certificados-https/f1_detalle_cert.png)
 
 > ¿Cómo se realiza una copia de seguridad de tu certificado digital? Razona qué formato de archivo se utiliza (ej. .pfx o .p12) y por qué es fundamental protegerlo con contraseña.
 
 Desde el mismo gestor de Firefox selecciono mi certificado y pulso Hacer copia. Le pongo nombre al fichero y una contraseña para protegerlo:
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/f1b_hacer_copia.png" width="79%"></p>
+![](./imagenes/criptografia-certificados-https/f1b_hacer_copia.png)
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/f1b_guardar_p12.png" width="92%"></p>
+![](./imagenes/criptografia-certificados-https/f1b_guardar_p12.png)
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/f1b_pass_copia.png" width="99%"></p>
+![](./imagenes/criptografia-certificados-https/f1b_pass_copia.png)
 
 Se usa el formato PKCS#12 (.p12 o .pfx) porque guarda en un solo fichero el certificado y también la clave privada, así puedo restaurarlo entero en otro equipo. Es fundamental ponerle contraseña porque la clave privada va dentro: si alguien consigue el fichero podria firmar documentos y hacer trámites como si fuera yo. La contraseña es la que cifra el fichero.
 
@@ -63,7 +63,7 @@ Se usa el formato PKCS#12 (.p12 o .pfx) porque guarda en un solo fichero el cert
 
 Para compararlo, exporto también solo el certificado desde Ver &gt; Descargar &gt; PEM (cert):
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/f1c_descargar_pem.png" width="61%"></p>
+![](./imagenes/criptografia-certificados-https/f1c_descargar_pem.png)
 
 Y miro los ficheros en la terminal:
 
@@ -97,13 +97,14 @@ sergio@Sergio-PC:~/Descargas$ sudo apt install ./autofirma_1_9.deb
 
 En VALIDe entro en Validar Certificado y pulso Seleccionar Certificado. Se abre AutoFirma y me deja elegir mi certificado del almacén de Firefox (el almacén NSS):
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/f2_valide_elegir.png" width="57%"></p>
+![](./imagenes/criptografia-certificados-https/f2_valide_elegir.png)
 
 > Muestra capturas de pantalla donde se compruebe el resultado de la validación.
 
 VALIDe dice que mi certificado es válido. En la información ampliada salen sus datos y al final pone que es válido incluyendo su estado de revocación:
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/f2_valide_ok.png" width="49%"> <img src="./imagenes/criptografia-certificados-https/f2_valide_ampliado.png" width="46%"></p>
+![](./imagenes/criptografia-certificados-https/f2_valide_ok.png)
+![](./imagenes/criptografia-certificados-https/f2_valide_ampliado.png)
 
 ### Tarea 3: Firma Electrónica
 
@@ -111,31 +112,34 @@ VALIDe dice que mi certificado es válido. En la información ampliada salen sus
 
 En AutoFirma selecciono un PDF (mi práctica de GitHub). Como es un PDF usa el formato Firma PDF (PAdES), que mete la firma dentro del propio fichero. Activo la firma visible y le doy a Firmar:
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/f3_autofirma_seleccion.png" width="80%"></p>
+![](./imagenes/criptografia-certificados-https/f3_autofirma_seleccion.png)
 
 Me pide confirmar la firma y elegir dónde va el recuadro, que lo pongo arriba a la derecha:
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/f3_autorizar.png" width="66%"> <img src="./imagenes/criptografia-certificados-https/f3_pos_firma.png" width="29%"></p>
+![](./imagenes/criptografia-certificados-https/f3_autorizar.png)
+![](./imagenes/criptografia-certificados-https/f3_pos_firma.png)
 
 Elijo mi certificado y AutoFirma crea Github-SergioMesa_signed.pdf, con mi firma hecha con el certificado de AC FNMT Usuarios:
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/f3_firma_ok.png" width="80%"></p>
+![](./imagenes/criptografia-certificados-https/f3_firma_ok.png)
 
 Al abrir el PDF ya se ve el recuadro de la firma, y se lo mando a Gabriel por correo:
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/f3_pdf_firma_visible.png" width="62%"> <img src="./imagenes/criptografia-certificados-https/f3_correo_envio.png" width="33%"></p>
+![](./imagenes/criptografia-certificados-https/f3_pdf_firma_visible.png)
+![](./imagenes/criptografia-certificados-https/f3_correo_envio.png)
 
 > Debes recibir un documento firmado por un compañero. Utilizando las herramientas anteriores, visualiza la firma y verifica su validez.
 
 Gabriel me manda un PDF firmado por él. Lo subo a VALIDe (Validar Firma) y sale firma válida con él como firmante:
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/f3_correo_pdf_gabriel.png" width="46%"> <img src="./imagenes/criptografia-certificados-https/f3_valide_gabriel.png" width="49%"></p>
+![](./imagenes/criptografia-certificados-https/f3_correo_pdf_gabriel.png)
+![](./imagenes/criptografia-certificados-https/f3_valide_gabriel.png)
 
 También lo abro con AutoFirma, que lo detecta como firmado y dice firma válida. En Detalles de la firma se ve el perfil PAdES, el algoritmo SHA256withRSA y su certificado de la FNMT:
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/f3_autofirma_gabriel.png" width="99%"></p>
+![](./imagenes/criptografia-certificados-https/f3_autofirma_gabriel.png)
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/f3_detalle_firma_gabriel.png" width="81%"></p>
+![](./imagenes/criptografia-certificados-https/f3_detalle_firma_gabriel.png)
 
 > Razona las siguientes cuestiones:
 
@@ -151,13 +155,13 @@ Para comprobar que la firma es correcta y que el documento no se ha cambiado no 
 
 Gabriel cogió mi PDF ya firmado y lo firmó él encima, con su recuadro a la izquierda. Ahora el PDF tiene las dos firmas:
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/f3_conjunta_visible.png" width="99%"></p>
+![](./imagenes/criptografia-certificados-https/f3_conjunta_visible.png)
 
 En AutoFirma salen los dos firmantes en el árbol de firmas y las dos firmas son correctas, y VALIDe la da por válida con los dos:
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/f3_conjunta_autofirma.png" width="81%"></p>
+![](./imagenes/criptografia-certificados-https/f3_conjunta_autofirma.png)
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/f3_conjunta_valide.png" width="93%"></p>
+![](./imagenes/criptografia-certificados-https/f3_conjunta_valide.png)
 
 Cada firma nueva se añade al final del PDF sin romper la anterior: la de Gabriel cubre el documento entero, incluida mi firma.
 
@@ -167,13 +171,13 @@ Cada firma nueva se añade al final del PDF sin romper la anterior: la de Gabrie
 
 He entrado en la Carpeta Ciudadana (carpetaciudadana.gob.es). Al acceder elijo identificarme con certificado y Firefox me pregunta cuál usar:
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/f4_elegir_cert.png" width="80%"></p>
+![](./imagenes/criptografia-certificados-https/f4_elegir_cert.png)
 
 > Entrega capturas de pantalla anonimizadas que demuestren el acceso autenticado con éxito.
 
 Y entro con mi nombre. Hasta sale la fecha de caducidad de mi certificado en próximos eventos (he tapado el DNI):
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/f4_carpeta.png" width="99%"></p>
+![](./imagenes/criptografia-certificados-https/f4_carpeta.png)
 
 ## PARTE 2: Infraestructura PKI y Servidores Web (TLS)
 
@@ -191,7 +195,7 @@ echo "<h1>Web de Sergio Mesa - sergio.iesgn.org</h1>" | sudo tee /var/www/html/i
 
 Así se veía al principio, todavía por HTTP (No seguro):
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/s1_http.png" width="57%"></p>
+![](./imagenes/criptografia-certificados-https/s1_http.png)
 
 La práctica la he hecho con Gabriel Merencio: yo he sido la CA para su servidor y él la CA para el mío.
 
@@ -215,7 +219,7 @@ echo 1000 > serial
 
 certs guarda los certificados, newcerts una copia de cada uno que firmo, private la clave de la CA (solo yo puedo entrar), index.txt es el registro de lo que firmo y serial el número de serie del siguiente:
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/ca2_carpetas.png" width="52%"></p>
+![](./imagenes/criptografia-certificados-https/ca2_carpetas.png)
 
 Este es el openssl.cnf que uso:
 
@@ -294,13 +298,13 @@ openssl req -config openssl.cnf -key private/ca.key.pem -new -x509 -days 3650 \
   -subj "/C=ES/ST=Sevilla/L=Dos Hermanas/O=CA Sergio Mesa/CN=CA Sergio Mesa"
 ```
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/ca4_genrsa_req.png" width="98%"></p>
+![](./imagenes/criptografia-certificados-https/ca4_genrsa_req.png)
 
 Al verlo, el emisor y el sujeto son el mismo (por eso es autofirmado), y tiene CA:TRUE y permiso para firmar certificados:
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/ca5_x509_ca.png" width="98%"></p>
+![](./imagenes/criptografia-certificados-https/ca5_x509_ca.png)
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/ca6_ext_ca.png" width="98%"></p>
+![](./imagenes/criptografia-certificados-https/ca6_ext_ca.png)
 
 > Recepción del fichero CSR (Certificate Signing Request) enviado por su compañero, proceso de firma del mismo utilizando las directivas de la CA, y envío del certificado final al compañero.
 
@@ -313,7 +317,7 @@ openssl req -in ~/CA/csr/gabriel.iesgn.org.csr -noout -text -verify
 
 Sale verify OK, el CN es gabriel.iesgn.org, la clave es de curva elíptica prime256v1 y trae el subjectAltName:
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/ca7_csr_gabriel.png" width="98%"></p>
+![](./imagenes/criptografia-certificados-https/ca7_csr_gabriel.png)
 
 La firmo con mi CA usando la sección server_cert. Me pide la contraseña de la CA y confirmar dos veces:
 
@@ -322,7 +326,7 @@ openssl ca -config openssl.cnf -extensions server_cert -days 375 -notext \
   -in csr/gabriel.iesgn.org.csr -out certs/gabriel.iesgn.org.crt
 ```
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/ca8_firma_gabriel.png" width="98%"></p>
+![](./imagenes/criptografia-certificados-https/ca8_firma_gabriel.png)
 
 Compruebo el certificado: lo emite mi CA, es para gabriel.iesgn.org, tiene CA:FALSE, uso de servidor web y el DNS. En index.txt queda apuntado con el serial 1000, y su copia está en newcerts/1000.pem:
 
@@ -334,11 +338,12 @@ cat index.txt
 ls newcerts
 ```
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/ca9_cert_gabriel.png" width="98%"></p>
+![](./imagenes/criptografia-certificados-https/ca9_cert_gabriel.png)
 
 Y le devuelvo su certificado firmado junto con el certificado de mi CA:
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/ca1_correo_csr_gabriel.png" width="34%"> <img src="./imagenes/criptografia-certificados-https/ca10_envio_gabriel.png" width="61%"></p>
+![](./imagenes/criptografia-certificados-https/ca1_correo_csr_gabriel.png)
+![](./imagenes/criptografia-certificados-https/ca10_envio_gabriel.png)
 
 > ¿Qué otra información crítica (además del certificado firmado) debe aportar la CA a su compañero para que el servidor web confíe plenamente en él y no muestre errores en el navegador?
 
@@ -358,7 +363,7 @@ openssl ec -in sergio.iesgn.org.key -noout -text | head -3
 
 La clave es de 256 bits. Da la misma seguridad que una RSA de 3072 bits pero es mucho más pequeña y las operaciones son más rápidas:
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/s2_clave_ec.png" width="91%"></p>
+![](./imagenes/criptografia-certificados-https/s2_clave_ec.png)
 
 > Utiliza dicha clave privada para generar una solicitud de firma de certificado (CSR), especificando como nombre común (Common Name / FQDN) el dominio tunombre.iesgn.org.
 
@@ -371,7 +376,7 @@ openssl req -new -key sergio.iesgn.org.key -out sergio.iesgn.org.csr \
 openssl req -in sergio.iesgn.org.csr -noout -text
 ```
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/s3_csr.png" width="97%"></p>
+![](./imagenes/criptografia-certificados-https/s3_csr.png)
 
 > Envía la solicitud de firma (CSR) a la entidad certificadora (tu compañero).
 
@@ -382,13 +387,13 @@ sergio@Sergio-PC:~$ scp -i ~/.ssh/id_rsa sergio@192.168.122.181:~/tls/sergio.ies
 sergio.iesgn.org.csr                                  100%  566   415.0KB/s   00:00
 ```
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/s5_correo_csr.png" width="60%"></p>
+![](./imagenes/criptografia-certificados-https/s5_correo_csr.png)
 
 > Recibe como respuesta el certificado X.509 firmado para el servidor y el certificado de la CA raíz.
 
 Gabriel me devuelve mi certificado y el de su CA (ca.crt). Le cambio el nombre a su CA para no confundirla con la mía y los paso a la VM:
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/s6_correo_certs.png" width="59%"></p>
+![](./imagenes/criptografia-certificados-https/s6_correo_certs.png)
 
 ```
 sergio@Sergio-PC:~/Descargas$ mv ca.crt ca_gabriel.crt
@@ -478,13 +483,14 @@ Content-Type: text/html
 
 Para que Firefox no dé error, importo la CA de Gabriel en Ver certificados &gt; Autoridades, marcando que confíe en ella para identificar sitios web:
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/ap3_confiar_ca.png" width="96%"></p>
+![](./imagenes/criptografia-certificados-https/ap3_confiar_ca.png)
 
 Al entrar por http://sergio.iesgn.org salta solo a HTTPS y la conexión sale segura, con el certificado emitido por la CA de Gabriel:
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/ap4_navegador_https.png" width="69%"> <img src="./imagenes/criptografia-certificados-https/ap5_conexion_segura.png" width="26%"></p>
+![](./imagenes/criptografia-certificados-https/ap4_navegador_https.png)
+![](./imagenes/criptografia-certificados-https/ap5_conexion_segura.png)
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/ap5_cert_ca_gabriel.png" width="72%"></p>
+![](./imagenes/criptografia-certificados-https/ap5_cert_ca_gabriel.png)
 
 > Servidor Nginx: Desinstala o detén temporalmente Apache (para liberar el puerto 443), instala el servidor web Nginx y realiza la misma configuración de seguridad TLS utilizando el mismo certificado y clave elíptica. Documenta los bloques de configuración de ambos servidores y explica las diferencias sintácticas principales entre ellos.
 
@@ -543,7 +549,7 @@ Server: nginx
 Content-Type: text/html
 ```
 
-<p align="center"><img src="./imagenes/criptografia-certificados-https/ng5_navegador.png" width="90%"></p>
+![](./imagenes/criptografia-certificados-https/ng5_navegador.png)
 
 Diferencias de sintaxis que he visto entre los dos:
 
